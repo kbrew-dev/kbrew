@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
@@ -97,11 +96,9 @@ func manageApp(m method, args []string) error {
 		return nil
 	}
 
-	// TODO: Switch to config based registration
 	for _, a := range args {
 		var app apps.App
 		// Check if entry exists in config
-		// TODO: Create a map during init
 		if c.App.Name != strings.ToLower(a) {
 			continue
 		}
@@ -129,14 +126,12 @@ func manageApp(m method, args []string) error {
 }
 
 func search(args []string) error {
-
 	// List from config
 	c, err := config.New(configFile)
 	if err != nil {
 		return err
 	}
 
-	//TODO: Support for other app types
 	if len(args) == 0 || strings.HasPrefix(c.App.Name, args[0]) {
 		printList(c.App)
 		return nil
@@ -150,14 +145,6 @@ func printList(app config.App) {
 	fmt.Fprintln(w, fmt.Sprintf("%s\t%s\t%s", app.Name, app.Version, app.Type))
 	w.Flush()
 
-}
-
-func executeCommand(m method, data []byte) error {
-	c := exec.Command("kubectl", string(m), "-f", "-")
-	c.Stdin = strings.NewReader(string(data))
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	return c.Run()
 }
 
 func initConfig() {
