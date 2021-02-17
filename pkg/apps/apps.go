@@ -5,5 +5,14 @@ import (
 )
 
 type App interface {
-	Manifest(ctx context.Context, opt map[string]string) ([]byte, error)
+	Install(ctx context.Context, opt map[string]string) error
+	Uninstall(ctx context.Context) error
+}
+
+type BaseApp struct {
+	URL       string
+	Name      string
+	Namespace string
+	Digest    string
+	Version   string
 }

@@ -2,65 +2,50 @@ package raw
 
 import (
 	"context"
-	"fmt"
-	"github.com/pkg/errors"
-	"io/ioutil"
 	"os"
-	"path/filepath"
+	"os/exec"
+
+	"github.com/vishal-biyani/kbrew/pkg/apps"
+	"github.com/vishal-biyani/kbrew/pkg/config"
 )
 
-// TODO: relative path
-const dataDir = "./data/raw"
+type method string
 
-type Raw struct {
-	app     string
-	options map[string]string
+const (
+	install   method = "create"
+	uninstall method = "delete"
+	upgrade   method = "apply"
+)
+
+type RawApp struct {
+	apps.BaseApp
 }
 
-func New(name string) (*Raw, error) {
-	if _, err := os.Stat(fmt.Sprintf("%s/%s", dataDir, name)); os.IsNotExist(err) {
-		return nil, errors.New("Unsupported application")
+func New(c config.App, namespace string) *RawApp {
+	return &RawApp{
+		apps.BaseApp{
+			Name:      c.Name,
+			Namespace: namespace,
+			Version:   c.Version,
+			URL:       c.URL,
+			Digest:    c.SHA256,
+		},
 	}
-	return &Raw{
-		app: name,
-	}, nil
 }
 
-func (r *Raw) Manifest(ctx context.Context, opt map[string]string) ([]byte, error) {
-	return ParseRaw(fmt.Sprintf("./data/raw/%s", r.app))
+func (r *RawApp) Install(ctx context.Context, options map[string]string) error {
+	// TODO(@prasad): Use go sdks
+	return kubectlCommand(install, r.Name, r.Namespace, r.URL)
 }
 
-func List(ctx context.Context) ([]string, error) {
-	appList := []string{}
-	files, err := ioutil.ReadDir(dataDir)
-	if err != nil {
-		return appList, err
-	}
-
-	for _, file := range files {
-		appList = append(appList, file.Name())
-	}
-	return appList, nil
+func (r *RawApp) Uninstall(ctx context.Context) error {
+	// TODO(@prasad): Use go sdks
+	return kubectlCommand(uninstall, r.Name, r.Namespace, r.URL)
 }
 
-// TODO: Move to utils
-func ParseRaw(path string) ([]byte, error) {
-	resp := []byte{}
-	yamlFiles, err := filepath.Glob(path + "/*.yaml")
-	if err != nil {
-		return nil, err
-	}
-	for _, f := range yamlFiles {
-		file, err := os.Open(f) // For read access.
-		if err != nil {
-			return nil, err
-		}
-		b, err := ioutil.ReadAll(file)
-		if err != nil {
-			return nil, err
-		}
-		resp = append(resp, []byte("---\n")...)
-		resp = append(resp, b...)
-	}
-	return resp, nil
+func kubectlCommand(m method, name, namespace, url string) error {
+	c := exec.Command("kubectl", string(m), "-f", url, "--namespace", namespace)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	return c.Run()
 }
