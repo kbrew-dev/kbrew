@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"text/tabwriter"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -29,6 +28,7 @@ const (
 var (
 	configFile string
 	namespace  string
+	version    string
 
 	rootCmd = &cobra.Command{
 		Use:   "kbrew",
@@ -67,6 +67,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is $HOME/.kbrew.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "namespace")
+	installCmd.Flags().StringVar(&version, "version", "", "App version to be installed")
 
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(removeCmd)
@@ -98,25 +99,34 @@ func manageApp(m method, args []string) error {
 
 	for _, a := range args {
 		var app apps.App
-		// Check if entry exists in config
-		if c.App.Name != strings.ToLower(a) {
-			continue
-		}
+		installApp := strings.ToLower(a)
 
-		switch c.App.Type {
+		switch c.App.Repository.Type {
 		case config.Helm:
 			app = helm.New(c.App, namespace)
 		case config.Raw:
 			app = raw.New(c.App, namespace)
 		default:
-			return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Type))
+			return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
+		}
+
+		if version == "" && c.App.Name == installApp {
+			version = c.App.Version
+		}
+
+		// Check if entry exists in config
+		if c.App.Name != installApp {
+			// Check if app exists in repo
+			if _, err := app.Search(ctx, installApp); err != nil {
+				continue
+			}
 		}
 
 		switch m {
 		case install:
-			return app.Install(ctx, nil)
+			return app.Install(ctx, installApp, version, nil)
 		case uninstall:
-			return app.Uninstall(ctx)
+			return app.Uninstall(ctx, installApp)
 		default:
 			return errors.New(fmt.Sprintf("Unsupported method %s", m))
 		}
@@ -126,25 +136,30 @@ func manageApp(m method, args []string) error {
 }
 
 func search(args []string) error {
-	// List from config
+	ctx := context.Background()
 	c, err := config.New(configFile)
 	if err != nil {
 		return err
 	}
 
-	if len(args) == 0 || strings.HasPrefix(c.App.Name, args[0]) {
-		printList(c.App)
-		return nil
+	var app apps.App
+	switch c.App.Repository.Type {
+	case config.Helm:
+		app = helm.New(c.App, namespace)
+	case config.Raw:
+		app = raw.New(c.App, namespace)
+	default:
+		return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
 	}
-	return nil
-}
 
-func printList(app config.App) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.TabIndent)
-	fmt.Fprintln(w, "NAME\tVERSION\tTYPE")
-	fmt.Fprintln(w, fmt.Sprintf("%s\t%s\t%s", app.Name, app.Version, app.Type))
-	w.Flush()
-
+	if len(args) == 0 {
+		out, err := app.Search(ctx, "")
+		fmt.Print(string(out))
+		return err
+	}
+	out, err := app.Search(ctx, args[0])
+	fmt.Print(string(out))
+	return err
 }
 
 func initConfig() {

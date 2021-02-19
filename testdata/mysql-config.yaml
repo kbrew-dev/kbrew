@@ -1,8 +1,10 @@
 apiVersion: v1
 kind: kbrew
 app:
+  repository:
+    name: bitnami
+    url: https://charts.bitnami.com/bitnami
+    type: helm
   name: mysql
-  type: helm
-  url: https://charts.bitnami.com/bitnami/mysql-8.3.1.tgz
   sha256:
   version: 8.3.1
