@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	Raw  AppType = "raw"
-	Helm AppType = "helm"
+	Raw  RepoType = "raw"
+	Helm RepoType = "helm"
 )
 
-type AppType string
+type RepoType string
 
 type AppConfig struct {
 	APIVersion string `yaml:"apiVersion"`
@@ -21,11 +21,17 @@ type AppConfig struct {
 }
 
 type App struct {
-	Name    string  `yaml:"name"`
-	Type    AppType `yaml:"type"`
-	URL     string  `yaml:"url"`
-	SHA256  string  `yaml:"sha256"`
-	Version string  `yaml:"version"`
+	Repository Repository `yaml:"repository"`
+	Name       string     `yaml:"name"`
+	URL        string     `yaml:"url"`
+	SHA256     string     `yaml:"sha256"`
+	Version    string     `yaml:"version"`
+}
+
+type Repository struct {
+	Name string   `yaml:"name"`
+	URL  string   `yaml:"url"`
+	Type RepoType `yaml:"type"`
 }
 
 func New(path string) (*AppConfig, error) {

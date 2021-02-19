@@ -2,17 +2,17 @@ package apps
 
 import (
 	"context"
+
+	"github.com/vishal-biyani/kbrew/pkg/config"
 )
 
 type App interface {
-	Install(ctx context.Context, opt map[string]string) error
-	Uninstall(ctx context.Context) error
+	Install(ctx context.Context, name string, version string, opt map[string]string) error
+	Uninstall(ctx context.Context, name string) error
+	Search(ctx context.Context, name string) (string, error)
 }
 
 type BaseApp struct {
-	URL       string
-	Name      string
+	App       config.App
 	Namespace string
-	Digest    string
-	Version   string
 }
