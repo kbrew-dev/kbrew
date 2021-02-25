@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: kbrew
+app:
+  repository:
+    name: botkube
+    url: https://raw.githubusercontent.com/infracloudio/botkube/develop/deploy-all-in-one.yaml
+    type: raw
+  name: botkube
+  sha256:
+  version: v0.12.0

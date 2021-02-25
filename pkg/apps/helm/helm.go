@@ -15,9 +15,9 @@ import (
 type method string
 
 const (
-	install   method = "install"
-	uninstall method = "delete"
-	upgrade   method = "upgrade"
+	installMethod   method = "install"
+	uninstallMethod method = "delete"
+	upgrade         method = "upgrade"
 )
 
 type HelmApp struct {
@@ -42,7 +42,7 @@ func (ha *HelmApp) Install(ctx context.Context, name, version string, options ma
 	if _, err := ha.addRepo(ctx); err != nil {
 		return err
 	}
-	out, err := helmCommand(install, name, version, ha.Namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
+	out, err := helmCommand(installMethod, name, version, ha.Namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
 	fmt.Println(out)
 	return err
 }
@@ -52,7 +52,7 @@ func (ha *HelmApp) Uninstall(ctx context.Context, name string) error {
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
-	out, err := helmCommand(uninstall, name, "", ha.Namespace, "")
+	out, err := helmCommand(uninstallMethod, name, "", ha.Namespace, "")
 	fmt.Println(out)
 	return err
 }
@@ -97,6 +97,9 @@ func helmCommand(m method, name, version, namespace, chart string) (string, erro
 	}
 	if version != "" {
 		c.Args = append(c.Args, "--version", version)
+	}
+	if m == installMethod {
+		c.Args = append(c.Args, "--wait")
 	}
 	out, err := c.CombinedOutput()
 	return string(out), err

@@ -65,9 +65,9 @@ var (
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is $HOME/.kbrew.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "namespace")
-	installCmd.Flags().StringVar(&version, "version", "", "App version to be installed")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file (default is $HOME/.kbrew.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
+	installCmd.Flags().StringVarP(&version, "version", "v", "", "App version to be installed")
 
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(removeCmd)
@@ -105,7 +105,10 @@ func manageApp(m method, args []string) error {
 		case config.Helm:
 			app = helm.New(c.App, namespace)
 		case config.Raw:
-			app = raw.New(c.App, namespace)
+			app, err = raw.New(c.App, namespace)
+			if err != nil {
+				return err
+			}
 		default:
 			return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
 		}
@@ -147,7 +150,10 @@ func search(args []string) error {
 	case config.Helm:
 		app = helm.New(c.App, namespace)
 	case config.Raw:
-		app = raw.New(c.App, namespace)
+		app, err = raw.New(c.App, namespace)
+		if err != nil {
+			return err
+		}
 	default:
 		return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
 	}
