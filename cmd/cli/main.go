@@ -12,10 +12,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/vishal-biyani/kbrew/pkg/apps"
-	"github.com/vishal-biyani/kbrew/pkg/apps/helm"
-	"github.com/vishal-biyani/kbrew/pkg/apps/raw"
-	"github.com/vishal-biyani/kbrew/pkg/config"
+	"github.com/infracloudio/kbrew/pkg/apps"
+	"github.com/infracloudio/kbrew/pkg/apps/helm"
+	"github.com/infracloudio/kbrew/pkg/apps/raw"
+	"github.com/infracloudio/kbrew/pkg/config"
 )
 
 type method string

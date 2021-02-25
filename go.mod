@@ -1,4 +1,4 @@
-module github.com/vishal-biyani/kbrew
+module github.com/infracloudio/kbrew
 
 go 1.15
 
