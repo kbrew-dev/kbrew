@@ -3,7 +3,7 @@ package apps
 import (
 	"context"
 
-	"github.com/vishal-biyani/kbrew/pkg/config"
+	"github.com/infracloudio/kbrew/pkg/config"
 )
 
 type App interface {
