@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/infracloudio/kbrew/pkg/apps"
 	"github.com/infracloudio/kbrew/pkg/config"
 )
 
@@ -21,19 +20,16 @@ const (
 )
 
 type HelmApp struct {
-	apps.BaseApp
+	App config.App
 }
 
-func New(c config.App, namespace string) *HelmApp {
+func New(c config.App) *HelmApp {
 	return &HelmApp{
-		apps.BaseApp{
-			App:       c,
-			Namespace: namespace,
-		},
+		App: c,
 	}
 }
 
-func (ha *HelmApp) Install(ctx context.Context, name, version string, options map[string]string) error {
+func (ha *HelmApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	fmt.Printf("Installing helm app %s/%s\n", ha.App.Repository.Name, name)
 	//TODO: Resolve Deps
 	// Validate and install chart
@@ -42,23 +38,23 @@ func (ha *HelmApp) Install(ctx context.Context, name, version string, options ma
 	if _, err := ha.addRepo(ctx); err != nil {
 		return err
 	}
-	out, err := helmCommand(installMethod, name, version, ha.Namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
+	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
 	fmt.Println(out)
 	return err
 }
 
-func (ha *HelmApp) Uninstall(ctx context.Context, name string) error {
+func (ha *HelmApp) Uninstall(ctx context.Context, name, namespace string) error {
 	fmt.Printf("Unistalling helm app %s\n", name)
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
-	out, err := helmCommand(uninstallMethod, name, "", ha.Namespace, "")
+	out, err := helmCommand(uninstallMethod, name, "", namespace, "")
 	fmt.Println(out)
 	return err
 }
 
 func (ha *HelmApp) addRepo(ctx context.Context) (string, error) {
-	// Needs helm3
+	// Needs helm 3.2+
 	c := exec.Command("helm", "repo", "add", ha.App.Repository.Name, ha.App.Repository.URL)
 	if out, err := c.CombinedOutput(); err != nil {
 		return string(out), err
@@ -67,14 +63,14 @@ func (ha *HelmApp) addRepo(ctx context.Context) (string, error) {
 }
 
 func (ha *HelmApp) updateRepo(ctx context.Context) (string, error) {
-	// Needs helm3
+	// Needs helm 3.2+
 	c := exec.Command("helm", "repo", "update")
 	out, err := c.CombinedOutput()
 	return string(out), err
 }
 
 func (ha *HelmApp) Search(ctx context.Context, name string) (string, error) {
-	// Needs helm3
+	// Needs helm 3.2+
 	if out, err := ha.addRepo(ctx); err != nil {
 		return string(out), err
 	}
@@ -90,7 +86,7 @@ func (ha *HelmApp) Search(ctx context.Context, name string) (string, error) {
 }
 
 func helmCommand(m method, name, version, namespace, chart string) (string, error) {
-	// Needs helm3
+	// Needs helm 3.2+
 	c := exec.Command("helm", string(m), name, "--namespace", namespace)
 	if chart != "" {
 		c.Args = append(c.Args, chart)

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: kbrew
+app:
+  repository:
+    name: cert-manager-crds
+    url: https://raw.githubusercontent.com/jetstack/cert-manager/v0.10.1/deploy/manifests/01-namespace.yaml
+    type: raw
+  name: cert-manager-crds
+  sha256:
+  version: v0.10.1

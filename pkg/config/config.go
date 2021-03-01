@@ -21,17 +21,28 @@ type AppConfig struct {
 }
 
 type App struct {
-	Repository Repository `yaml:"repository"`
-	Name       string     `yaml:"name"`
-	URL        string     `yaml:"url"`
-	SHA256     string     `yaml:"sha256"`
-	Version    string     `yaml:"version"`
+	Repository  Repository  `yaml:"repository"`
+	Name        string      `yaml:"name"`
+	Namespace   string      `yaml:"namespace"`
+	URL         string      `yaml:"url"`
+	SHA256      string      `yaml:"sha256"`
+	Version     string      `yaml:"version"`
+	PreInstall  PreInstall  `yaml:"pre_install"`
+	PostInstall PostInstall `yaml:"post_install"`
 }
 
 type Repository struct {
 	Name string   `yaml:"name"`
 	URL  string   `yaml:"url"`
 	Type RepoType `yaml:"type"`
+}
+
+type PreInstall struct {
+	Apps []string
+}
+
+type PostInstall struct {
+	Apps []string
 }
 
 func New(path string) (*AppConfig, error) {

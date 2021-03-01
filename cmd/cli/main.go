@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,22 +12,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/infracloudio/kbrew/pkg/apps"
-	"github.com/infracloudio/kbrew/pkg/apps/helm"
-	"github.com/infracloudio/kbrew/pkg/apps/raw"
-	"github.com/infracloudio/kbrew/pkg/config"
-)
-
-type method string
-
-const (
-	install   method = "create"
-	uninstall method = "uninstall"
 )
 
 var (
 	configFile string
 	namespace  string
-	version    string
 
 	rootCmd = &cobra.Command{
 		Use:   "kbrew",
@@ -41,7 +29,7 @@ var (
 		Short: "Install application",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return manageApp(install, args)
+			return manageApp(apps.Install, args)
 		},
 	}
 
@@ -50,7 +38,7 @@ var (
 		Short: "Remove application",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return manageApp(uninstall, args)
+			return manageApp(apps.Uninstall, args)
 		},
 	}
 
@@ -58,7 +46,7 @@ var (
 		Use:   "search [NAME]",
 		Short: "Search application",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return search(args)
+			return apps.Search(args, configFile, namespace)
 		},
 	}
 )
@@ -67,7 +55,6 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file (default is $HOME/.kbrew.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
-	installCmd.Flags().StringVarP(&version, "version", "v", "", "App version to be installed")
 
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(removeCmd)
@@ -90,82 +77,14 @@ func checkArgs(args []string) error {
 	return nil
 }
 
-func manageApp(m method, args []string) error {
+func manageApp(m apps.Method, args []string) error {
 	ctx := context.Background()
-	c, err := config.New(configFile)
-	if err != nil {
-		return nil
-	}
-
 	for _, a := range args {
-		var app apps.App
-		installApp := strings.ToLower(a)
-
-		switch c.App.Repository.Type {
-		case config.Helm:
-			app = helm.New(c.App, namespace)
-		case config.Raw:
-			app, err = raw.New(c.App, namespace)
-			if err != nil {
-				return err
-			}
-		default:
-			return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
-		}
-
-		if version == "" && c.App.Name == installApp {
-			version = c.App.Version
-		}
-
-		// Check if entry exists in config
-		if c.App.Name != installApp {
-			// Check if app exists in repo
-			if _, err := app.Search(ctx, installApp); err != nil {
-				continue
-			}
-		}
-
-		switch m {
-		case install:
-			return app.Install(ctx, installApp, version, nil)
-		case uninstall:
-			return app.Uninstall(ctx, installApp)
-		default:
-			return errors.New(fmt.Sprintf("Unsupported method %s", m))
-		}
-
-	}
-	return nil
-}
-
-func search(args []string) error {
-	ctx := context.Background()
-	c, err := config.New(configFile)
-	if err != nil {
-		return err
-	}
-
-	var app apps.App
-	switch c.App.Repository.Type {
-	case config.Helm:
-		app = helm.New(c.App, namespace)
-	case config.Raw:
-		app, err = raw.New(c.App, namespace)
-		if err != nil {
+		if err := apps.Run(ctx, m, strings.ToLower(a), namespace, configFile); err != nil {
 			return err
 		}
-	default:
-		return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
 	}
-
-	if len(args) == 0 {
-		out, err := app.Search(ctx, "")
-		fmt.Print(string(out))
-		return err
-	}
-	out, err := app.Search(ctx, args[0])
-	fmt.Print(string(out))
-	return err
+	return nil
 }
 
 func initConfig() {

@@ -22,7 +22,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/infracloudio/kbrew/pkg/apps"
 	"github.com/infracloudio/kbrew/pkg/config"
 	"github.com/infracloudio/kbrew/pkg/kube"
 )
@@ -30,7 +29,7 @@ import (
 type method string
 
 const (
-	install   method = "create"
+	install   method = "apply"
 	uninstall method = "delete"
 	upgrade   method = "apply"
 )
@@ -38,12 +37,12 @@ const (
 var yamlDelimiter = regexp.MustCompile(`(?m)^---$`)
 
 type RawApp struct {
-	apps.BaseApp
+	App      config.App
 	KubeCli  kubernetes.Interface
 	OSAppCli osversioned.Interface
 }
 
-func New(c config.App, namespace string) (*RawApp, error) {
+func New(c config.App) (*RawApp, error) {
 	cfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -62,29 +61,24 @@ func New(c config.App, namespace string) (*RawApp, error) {
 	}
 
 	rApp := &RawApp{
-		BaseApp: apps.BaseApp{
-			App: c,
-		},
+		App:      c,
 		KubeCli:  cli,
 		OSAppCli: osCli,
-	}
-	if namespace != "" {
-		rApp.Namespace = namespace
 	}
 	return rApp, nil
 }
 
-func (r *RawApp) Install(ctx context.Context, name, version string, options map[string]string) error {
+func (r *RawApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	// TODO(@prasad): Use go sdks
-	if err := kubectlCommand(install, name, r.Namespace, r.App.Repository.URL); err != nil {
+	if err := kubectlCommand(install, name, namespace, r.App.Repository.URL); err != nil {
 		return err
 	}
-	return r.waitForReady(ctx)
+	return r.waitForReady(ctx, namespace)
 }
 
-func (r *RawApp) Uninstall(ctx context.Context, name string) error {
+func (r *RawApp) Uninstall(ctx context.Context, name, namespace string) error {
 	// TODO(@prasad): Use go sdks
-	return kubectlCommand(uninstall, name, r.Namespace, r.App.Repository.URL)
+	return kubectlCommand(uninstall, name, namespace, r.App.Repository.URL)
 }
 
 func (r *RawApp) Search(ctx context.Context, name string) (string, error) {
@@ -101,7 +95,7 @@ func kubectlCommand(m method, name, namespace, url string) error {
 	return c.Run()
 }
 
-func (r *RawApp) waitForReady(ctx context.Context) error {
+func (r *RawApp) waitForReady(ctx context.Context, namespace string) error {
 	resp, err := http.Get(r.App.Repository.URL)
 	if err != nil {
 		return errors.Wrap(err, "Failed to read resource manifest from URL")
@@ -123,7 +117,6 @@ func (r *RawApp) waitForReady(ctx context.Context) error {
 			continue
 		}
 
-		namespace := r.Namespace
 		// Set default namespace if empty
 		if namespace == "" {
 			namespace = "default"
