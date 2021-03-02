@@ -95,7 +95,7 @@ func helmCommand(m method, name, version, namespace, chart string) (string, erro
 		c.Args = append(c.Args, "--version", version)
 	}
 	if m == installMethod {
-		c.Args = append(c.Args, "--wait")
+		c.Args = append(c.Args, "--wait", "--create-namespace")
 	}
 	out, err := c.CombinedOutput()
 	return string(out), err
