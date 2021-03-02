@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: kbrew
+app:
+  repository:
+    name: pravega
+    url: https://charts.pravega.io
+    type: helm
+  name: zookeeper-operator
+  namespace: zookeeper
+  sha256:
+  version: 
+  post_install:
+  - steps: 
+    - |
+      kubectl create --namespace zookeeper -f - <<EOF
+      apiVersion: zookeeper.pravega.io/v1beta1
+      kind: ZookeeperCluster
+      metadata:
+          name: zookeeper
+          namespace: zookeeper
+      spec:
+          replicas: 3
+      EOF
+    - |
+      echo "Waiting for zookeeper cluster to be ready"
+      retry=0
+      while true;
+      do
+      replicas=$(kubectl get ZookeeperCluster -n zookeeper zookeeper -o jsonpath='{.status.replicas}')
+      readyReplicas=$(kubectl get ZookeeperCluster -n zookeeper zookeeper -o jsonpath='{.status.readyReplicas}')
+      if [ ! -z "${replicas}" ] && [ "${replicas}" = "${readyReplicas}" ]; then break; fi
+      if [ "${retry}" = 20 ]; then echo "timed out while waiting for cluster to be ready"; exit 1; fi
+      sleep 5
+      retry=$((retry+1))
+      done

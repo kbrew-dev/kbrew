@@ -3,6 +3,8 @@ package apps
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -63,9 +65,16 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 	switch m {
 	case Install:
 		// Run preinstall
-		for _, a := range c.App.PreInstall.Apps {
-			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return err
+		for _, phase := range c.App.PreInstall {
+			for _, a := range phase.Apps {
+				if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+					return err
+				}
+			}
+			for _, a := range phase.Steps {
+				if err := execCommand(a); err != nil {
+					return err
+				}
 			}
 		}
 		// Run install
@@ -73,9 +82,16 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 			return err
 		}
 		// Run postinstall
-		for _, a := range c.App.PostInstall.Apps {
-			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return err
+		for _, phase := range c.App.PostInstall {
+			for _, a := range phase.Apps {
+				if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+					return err
+				}
+			}
+			for _, a := range phase.Steps {
+				if err := execCommand(a); err != nil {
+					return err
+				}
 			}
 		}
 	case Uninstall:
@@ -114,4 +130,11 @@ func Search(args []string, configFile, namespace string) error {
 	out, err := app.Search(ctx, args[0])
 	fmt.Print(string(out))
 	return err
+}
+
+func execCommand(cmd string) error {
+	c := exec.Command("sh", "-c", cmd)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	return c.Run()
 }
