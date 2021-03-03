@@ -8,4 +8,4 @@ app:
   name: kube-prometheus-stack
   namespace: default
   sha256:
-  version: 
+  version: 13.13.1

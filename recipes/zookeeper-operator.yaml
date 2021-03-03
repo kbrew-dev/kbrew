@@ -8,4 +8,4 @@ app:
   name: zookeeper-operator
   namespace: zookeeper
   sha256:
-  version: 
+  version: 0.2.9
