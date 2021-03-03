@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: kbrew
+app:
+  repository:
+    name: pravega
+    url: https://charts.pravega.io
+    type: helm
+  name: zookeeper-operator
+  namespace: zookeeper
+  sha256:
+  version: 

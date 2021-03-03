@@ -69,6 +69,7 @@ func New(c config.App) (*RawApp, error) {
 }
 
 func (r *RawApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
+	fmt.Printf("Installing raw app %s/%s\n", r.App.Repository.Name, name)
 	// TODO(@prasad): Use go sdks
 	if err := kubectlCommand(install, name, namespace, r.App.Repository.URL); err != nil {
 		return err
@@ -77,6 +78,7 @@ func (r *RawApp) Install(ctx context.Context, name, namespace, version string, o
 }
 
 func (r *RawApp) Uninstall(ctx context.Context, name, namespace string) error {
+	fmt.Printf("Unistalling raw app %s\n", name)
 	// TODO(@prasad): Use go sdks
 	return kubectlCommand(uninstall, name, namespace, r.App.Repository.URL)
 }
