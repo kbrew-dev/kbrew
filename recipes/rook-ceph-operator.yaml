@@ -1,0 +1,236 @@
+apiVersion: v1
+kind: kbrew
+app:
+  repository:
+    name: rook-ceph-operator
+    url: https://raw.githubusercontent.com/rook/rook/v1.5.8/cluster/examples/kubernetes/ceph/operator.yaml
+    type: raw
+  name: rook-ceph-operator
+  namespace: rook-ceph
+  sha256:
+  version: v1.5.8
+  pre_install:
+  # Install CRDs and RBAC
+  - steps:
+    - kubectl apply -f https://raw.githubusercontent.com/rook/rook/v1.5.8/cluster/examples/kubernetes/ceph/common.yaml
+    - kubectl apply -f https://raw.githubusercontent.com/rook/rook/v1.5.8/cluster/examples/kubernetes/ceph/crds.yaml
+  post_install:
+  # Create CephCluster
+  - steps:
+    - |
+      # Set correct storageclass
+      storageclass="gp2"
+      kubectl apply --namespace rook-ceph -f - <<EOF
+      apiVersion: ceph.rook.io/v1
+      kind: CephCluster
+      metadata:
+        name: rook-ceph
+        namespace: rook-ceph # namespace:cluster
+      spec:
+        dataDirHostPath: /var/lib/rook
+        mon:
+          # Set the number of mons to be started. Must be an odd number, and is generally recommended to be 3.
+          count: 3
+          # The mons should be on unique nodes. For production, at least 3 nodes are recommended for this reason.
+          # Mons should only be allowed on the same node for test environments where data loss is acceptable.
+          allowMultiplePerNode: false
+          # A volume claim template can be specified in which case new monitors (and
+          # monitors created during fail over) will construct a PVC based on the
+          # template for the monitor's primary storage. Changes to the template do not
+          # affect existing monitors. Log data is stored on the HostPath under
+          # dataDirHostPath. If no storage requirement is specified, a default storage
+          # size appropriate for monitor data will be used.
+          volumeClaimTemplate:
+            spec:
+              storageClassName: ${storageclass}
+              resources:
+                requests:
+                  storage: 10Gi
+        cephVersion:
+          image: ceph/ceph:v15.2.9
+          allowUnsupported: false
+        skipUpgradeChecks: false
+        continueUpgradeAfterChecksEvenIfNotHealthy: false
+        mgr:
+          modules:
+          - name: pg_autoscaler
+            enabled: true
+        dashboard:
+          enabled: true
+          ssl: true
+        crashCollector:
+          disable: false
+        storage:
+          storageClassDeviceSets:
+          - name: set1
+            # The number of OSDs to create from this device set
+            count: 3
+            # IMPORTANT: If volumes specified by the storageClassName are not portable across nodes
+            # this needs to be set to false. For example, if using the local storage provisioner
+            # this should be false.
+            portable: true
+            # Certain storage class in the Cloud are slow
+            # Rook can configure the OSD running on PVC to accommodate that by tuning some of the Ceph internal
+            # Currently, "gp2" has been identified as such
+            tuneDeviceClass: true
+            # Certain storage class in the Cloud are fast
+            # Rook can configure the OSD running on PVC to accommodate that by tuning some of the Ceph internal
+            # Currently, "managed-premium" has been identified as such
+            tuneFastDeviceClass: false
+            # whether to encrypt the deviceSet or not
+            encrypted: false
+            # Since the OSDs could end up on any node, an effort needs to be made to spread the OSDs
+            # across nodes as much as possible. Unfortunately the pod anti-affinity breaks down
+            # as soon as you have more than one OSD per node. The topology spread constraints will
+            # give us an even spread on K8s 1.18 or newer.
+            placement:
+              topologySpreadConstraints:
+              - maxSkew: 1
+                topologyKey: kubernetes.io/hostname
+                whenUnsatisfiable: ScheduleAnyway
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - rook-ceph-osd
+            preparePlacement:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                        - rook-ceph-osd
+                      - key: app
+                        operator: In
+                        values:
+                        - rook-ceph-osd-prepare
+                    topologyKey: kubernetes.io/hostname
+              topologySpreadConstraints:
+              - maxSkew: 1
+                topologyKey: topology.kubernetes.io/zone
+                whenUnsatisfiable: ScheduleAnyway
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - rook-ceph-osd-prepare
+            resources:
+            # These are the OSD daemon limits. For OSD prepare limits, see the separate section below for "prepareosd" resources
+            #   limits:
+            #     cpu: "500m"
+            #     memory: "4Gi"
+            #   requests:
+            #     cpu: "500m"
+            #     memory: "4Gi"
+            volumeClaimTemplates:
+            - metadata:
+                name: data
+                # if you are looking at giving your OSD a different CRUSH device class than the one detected by Ceph
+                # annotations:
+                #   crushDeviceClass: hybrid
+              spec:
+                resources:
+                  requests:
+                    storage: 10Gi
+                # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, gp2)
+                storageClassName: ${storageclass}
+                volumeMode: Block
+                accessModes:
+                  - ReadWriteOnce
+            # dedicated block device to store bluestore database (block.db)
+            # - metadata:
+            #     name: metadata
+            #   spec:
+            #     resources:
+            #       requests:
+            #         # Find the right size https://docs.ceph.com/docs/master/rados/configuration/bluestore-config-ref/#sizing
+            #         storage: 5Gi
+            #     # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, io1)
+            #     storageClassName: io1
+            #     volumeMode: Block
+            #     accessModes:
+            #       - ReadWriteOnce
+            # dedicated block device to store bluestore wal (block.wal)
+            # - metadata:
+            #     name: wal
+            #   spec:
+            #     resources:
+            #       requests:
+            #         # Find the right size https://docs.ceph.com/docs/master/rados/configuration/bluestore-config-ref/#sizing
+            #         storage: 5Gi
+            #     # IMPORTANT: Change the storage class depending on your environment (e.g. local-storage, io1)
+            #     storageClassName: io1
+            #     volumeMode: Block
+            #     accessModes:
+            #       - ReadWriteOnce
+            # Scheduler name for OSD pod placement
+            # schedulerName: osd-scheduler
+        resources:
+        #  prepareosd:
+        #    limits:
+        #      cpu: "200m"
+        #      memory: "200Mi"
+        #   requests:
+        #      cpu: "200m"
+        #      memory: "200Mi"
+        disruptionManagement:
+          managePodBudgets: false
+          osdMaintenanceTimeout: 30
+          pgHealthCheckTimeout: 0
+          manageMachineDisruptionBudgets: false
+          machineDisruptionBudgetNamespace: openshift-machine-api
+        # security oriented settings
+        # security:
+        # To enable the KMS configuration properly don't forget to uncomment the Secret at the end of the file
+        #   kms:
+        #     # name of the config map containing all the kms connection details
+        #     connectionDetails:
+               #KMS_PROVIDER: "vault"
+               #VAULT_ADDR: VAULT_ADDR_CHANGE_ME # e,g: https://vault.my-domain.com:8200
+               #VAULT_BACKEND_PATH: "rook"
+        #     # name of the secret containing the kms authentication token
+        #     tokenSecretName: rook-vault-token
+      # UNCOMMENT THIS TO ENABLE A KMS CONNECTION
+      # Also, do not forget to replace both:
+      #   * ROOK_TOKEN_CHANGE_ME: with a base64 encoded value of the token to use
+      #   * VAULT_ADDR_CHANGE_ME: with the Vault address
+      # ---
+      # apiVersion: v1
+      # kind: Secret
+      # metadata:
+      #   name: rook-vault-token
+      #   namespace: rook-ceph # namespace:cluster
+      # data:
+      #   token: ROOK_TOKEN_CHANGE_ME
+      EOF
+  # Wait for cluster to be ready
+  - steps:
+    # Verify if the ceph cluster is ready
+    - |
+      echo "Waiting for ceph cluster to be ready"
+      retry=0
+      while true;
+      do
+        phase=$(kubectl get cephcluster -n rook-ceph rook-ceph -o jsonpath='{.status.phase}')
+        if [ ! -z "${phase}" ] && [ "${phase}" = "Ready" ]; then break; fi
+        if [ "${retry}" = 30 ]; then echo "timed out while waiting for cluster to be ready"; exit 1; fi
+        sleep 5
+        retry=$((retry+1))
+      done
+  # Create storageclass and volumesnapshotclass to support volumesnapshots
+  - steps:
+    - |
+      # Create VolumeSnapshot CRDs if not exists
+      # TODO: Skip creation if CRDs already exists
+      kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
+      kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+      kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+
+    - kubectl apply -f https://raw.githubusercontent.com/rook/rook/v1.5.8/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml
+    - kubectl apply -f https://raw.githubusercontent.com/rook/rook/v1.5.8/cluster/examples/kubernetes/ceph/csi/rbd/snapshotclass.yaml
