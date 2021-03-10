@@ -3,15 +3,16 @@
 kbrew is to Kubernetes what Homebrew is to MacOS - a simple and easy to use package manager which hides the underlying complexity.
 
 Let's talk in context of an example of at installing Kafka on a Kubernetes cluster
- - You need cert manager & Zookeeper installed
+ - You need cert manager & Zookeeper & kube-prometheus-stack for monitoring installed
  - Zookeeper is a operator so you need to create a CR of Zookeeper cluster after installation of operator.
  - Then install Kafka operator
  - Create a CR of Kafka and wait for everything to stabilize.
+ - Create ServieMonitor resources to enable prom scraping
 
 With kbrew all of this happens with a single command (This command will change in near future):
 
 ```
-$ kbrew install --config=./recipes/kafka-operator.yaml 
+$ kbrew install --config=./recipes/kafka-operator.yaml kafka-operator
 ```
 ## Helm chart or operator or Manifests - all abstracted
 
