@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const workloadReadyTimeout = 30 * time.Second
+const workloadReadyTimeout = 15 * time.Minute
 
 func WaitForPodReady(ctx context.Context, kubeCli kubernetes.Interface, namespace string, name string) error {
 	ctx, cancel := context.WithTimeout(ctx, workloadReadyTimeout)
@@ -20,13 +20,13 @@ func WaitForPodReady(ctx context.Context, kubeCli kubernetes.Interface, namespac
 func WaitForDeploymentReady(ctx context.Context, kubeCli kubernetes.Interface, namespace string, name string) error {
 	ctx, cancel := context.WithTimeout(ctx, workloadReadyTimeout)
 	defer cancel()
-	return kube.WaitOnDeploymentReady(ctx, kubeCli, namespace, namespace)
+	return kube.WaitOnDeploymentReady(ctx, kubeCli, namespace, name)
 }
 
 func WaitForStatefulSetReady(ctx context.Context, kubeCli kubernetes.Interface, namespace string, name string) error {
 	ctx, cancel := context.WithTimeout(ctx, workloadReadyTimeout)
 	defer cancel()
-	return kube.WaitOnStatefulSetReady(ctx, kubeCli, namespace, namespace)
+	return kube.WaitOnStatefulSetReady(ctx, kubeCli, namespace, name)
 }
 
 func WaitForDeploymentConfigReady(ctx context.Context, osCli osversioned.Interface, kubeCli kubernetes.Interface, namespace string, name string) error {
