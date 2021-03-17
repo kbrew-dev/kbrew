@@ -10,5 +10,5 @@ app:
   sha256:
   version: v0.10.1
   pre_install:
-    steps:
+  - steps:
     - kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/v0.10.1/deploy/manifests/01-namespace.yaml
