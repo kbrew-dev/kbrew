@@ -22,8 +22,8 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/infracloudio/kbrew/pkg/config"
-	"github.com/infracloudio/kbrew/pkg/kube"
+	"github.com/kbrew-dev/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/kube"
 )
 
 type method string
