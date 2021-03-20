@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/infracloudio/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/config"
 )
 
 type method string

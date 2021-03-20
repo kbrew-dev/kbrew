@@ -9,9 +9,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/infracloudio/kbrew/pkg/apps/helm"
-	"github.com/infracloudio/kbrew/pkg/apps/raw"
-	"github.com/infracloudio/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/apps/helm"
+	"github.com/kbrew-dev/kbrew/pkg/apps/raw"
+	"github.com/kbrew-dev/kbrew/pkg/config"
 )
 
 type Method string
