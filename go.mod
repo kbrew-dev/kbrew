@@ -1,13 +1,13 @@
 module github.com/kbrew-dev/kbrew
 
-go 1.15
+go 1.16
 
 replace github.com/graymeta/stow => github.com/kastenhq/stow v0.2.6-kasten.1
 
 require (
+	github.com/go-git/go-git/v5 v5.2.0
 	github.com/kanisterio/kanister v0.0.0-20210224062123-08e898f3dbf3
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/openshift/api v0.0.0-20200526144822-34f54f12813a
 	github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c
 	github.com/pkg/errors v0.9.1

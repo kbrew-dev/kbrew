@@ -3,14 +3,21 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
+	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
 const (
 	Raw  RepoType = "raw"
 	Helm RepoType = "helm"
+
+	RegistriesDirName = "registries"
 )
+
+var ConfigDir string
 
 type RepoType string
 
@@ -64,4 +71,20 @@ func New(path string) (*AppConfig, error) {
 		yaml.Unmarshal(b, c)
 	}
 	return c, nil
+}
+
+func InitConfig() {
+	if ConfigDir != "" {
+		return
+	}
+	// Find home directory.
+	home, err := homedir.Dir()
+	cobra.CheckErr(err)
+
+	// Generate default config file path
+	ConfigDir = filepath.Join(home, ".kbrew")
+	if _, err := os.Stat(ConfigDir); os.IsNotExist(err) {
+		err := os.MkdirAll(ConfigDir, os.ModePerm)
+		cobra.CheckErr(err)
+	}
 }

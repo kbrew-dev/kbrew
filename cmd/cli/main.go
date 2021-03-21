@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"path/filepath"
+	"fmt"
 	"strings"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/kbrew-dev/kbrew/pkg/apps"
+	"github.com/kbrew-dev/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/registry"
 )
 
 var (
@@ -46,14 +45,35 @@ var (
 		Use:   "search [NAME]",
 		Short: "Search application",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return apps.Search(args, configFile, namespace)
+			appName := ""
+			if len(args) != 0 {
+				appName = args[0]
+			}
+			reg, err := registry.New(config.ConfigDir)
+			if err != nil {
+				return err
+			}
+			appList, err := reg.Search(appName, false)
+			if err != nil {
+				return err
+			}
+			if len(appList) == 0 {
+				fmt.Printf("No recipe found for %s.\n", appName)
+				return nil
+			}
+			fmt.Println("Available recipes:")
+			for _, app := range appList {
+				fmt.Println(app.Name)
+			}
+			return nil
 		},
 	}
 )
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(config.InitConfig)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file (default is $HOME/.kbrew.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&config.ConfigDir, "config-dir", "", "", "config dir (default is $HOME/.kbrew)")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
 
 	rootCmd.AddCommand(installCmd)
@@ -80,27 +100,17 @@ func checkArgs(args []string) error {
 func manageApp(m apps.Method, args []string) error {
 	ctx := context.Background()
 	for _, a := range args {
+		reg, err := registry.New(config.ConfigDir)
+		if err != nil {
+			return err
+		}
+		configFile, err := reg.FetchRecipe(strings.ToLower(a))
+		if err != nil {
+			return err
+		}
 		if err := apps.Run(ctx, m, strings.ToLower(a), namespace, configFile); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func initConfig() {
-	if configFile != "" {
-		return
-	}
-	// Find home directory.
-	home, err := homedir.Dir()
-	cobra.CheckErr(err)
-
-	// Generate default config file path
-	configFile = filepath.Join(home, ".kbrew.yaml")
-	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		// Create file with default config
-		c := []byte("apiVersion: v1\nkind: kbrew\napps:\n")
-		err := ioutil.WriteFile(configFile, c, 0644)
-		cobra.CheckErr(err)
-	}
 }
