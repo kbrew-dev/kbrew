@@ -11,6 +11,7 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/apps"
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/registry"
+	"github.com/kbrew-dev/kbrew/pkg/version"
 )
 
 var (
@@ -21,6 +22,14 @@ var (
 		Use:   "kbrew",
 		Short: "Homebrew for your Kubernetes applications",
 		Long:  `TODO: Long description`,
+	}
+
+	versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print version information",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(version.Long())
+		},
 	}
 
 	installCmd = &cobra.Command{
@@ -76,6 +85,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&config.ConfigDir, "config-dir", "", "", "config dir (default is $HOME/.kbrew)")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
 
+	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(searchCmd)
