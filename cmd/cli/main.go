@@ -11,6 +11,7 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/apps"
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/registry"
+	"github.com/kbrew-dev/kbrew/pkg/update"
 	"github.com/kbrew-dev/kbrew/pkg/version"
 )
 
@@ -77,6 +78,15 @@ var (
 			return nil
 		},
 	}
+
+	updateCmd = &cobra.Command{
+		Use:   "update",
+		Short: "Update kbrew and recipe registries",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO(@prasad): Update kbrew registries
+			return update.CheckRelease(context.Background())
+		},
+	}
 )
 
 func init() {
@@ -89,6 +99,7 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(updateCmd)
 }
 
 func main() {

@@ -6,6 +6,7 @@ replace github.com/graymeta/stow => github.com/kastenhq/stow v0.2.6-kasten.1
 
 require (
 	github.com/go-git/go-git/v5 v5.2.0
+	github.com/google/go-github/v27 v27.0.6
 	github.com/kanisterio/kanister v0.0.0-20210224062123-08e898f3dbf3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v0.0.0-20200526144822-34f54f12813a
