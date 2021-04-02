@@ -29,7 +29,7 @@ func CheckRelease(ctx context.Context) error {
 	}
 	// Send notification if newer version available
 	if version.VERSION != *release.TagName {
-		fmt.Printf("kbrew %s is available, upgrading...\n")
+		fmt.Printf("kbrew %s is available, upgrading...\n", version.VERSION)
 		return upgradeKbrew(ctx)
 	}
 	return nil
