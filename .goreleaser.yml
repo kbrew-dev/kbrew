@@ -32,3 +32,12 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+# temporary workaround to distribute binaries
+release:
+  github:
+    owner: kbrew-dev
+    name: kbrew-release
+  draft: true
+  prerelease: auto
+  disable: false
+
