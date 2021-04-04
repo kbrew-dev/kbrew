@@ -83,8 +83,16 @@ var (
 		Use:   "update",
 		Short: "Update kbrew and recipe registries",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO(@prasad): Update kbrew registries
-			return update.CheckRelease(context.Background())
+			// Upgrade kbrew
+			if err := update.CheckRelease(context.Background()); err != nil {
+				return err
+			}
+			// Update kbrew registries
+			reg, err := registry.New(config.ConfigDir)
+			if err != nil {
+				return err
+			}
+			return reg.Update()
 		},
 	}
 )

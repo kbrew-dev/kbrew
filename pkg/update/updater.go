@@ -10,6 +10,7 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/version"
 
 	"github.com/google/go-github/v27/github"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -30,8 +31,7 @@ func CheckRelease(ctx context.Context) error {
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, releaseRepoOwner, releaseRepoName)
 	if err != nil {
-		fmt.Println("Failed to check for kbrew updates.")
-		return err
+		return errors.Wrap(err, "failed to check for kbrew updates")
 	}
 	if release == nil || release.TagName == nil {
 		return nil
@@ -47,8 +47,7 @@ func CheckRelease(ctx context.Context) error {
 func upgradeKbrew(ctx context.Context) error {
 	dir, err := getBinDir()
 	if err != nil {
-		fmt.Println("Failed to get executable dir.")
-		return err
+		return errors.Wrap(err, "failed to get executable dir")
 	}
 	os.Setenv("BINDIR", dir)
 	defer os.Unsetenv("BINDIR")

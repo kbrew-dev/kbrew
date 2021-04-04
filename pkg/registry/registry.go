@@ -3,13 +3,13 @@ package registry
 import (
 	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/pkg/errors"
 )
 
@@ -63,11 +63,6 @@ func (kr *kbrewRegistry) init() error {
 func (kr *kbrewRegistry) Add(user, repo string) error {
 	fmt.Printf("Adding %s/%s registry to %s\n", user, repo, kr.path)
 	r, err := git.PlainClone(filepath.Join(kr.path, user, repo), false, &git.CloneOptions{
-		// TODO(@prasad): Remove auth once registry is made public
-		Auth: &githttp.BasicAuth{
-			Username: "PrasadG193",
-			Password: os.Getenv("GITHUB_TOKEN"),
-		},
 		URL:               fmt.Sprintf(ghRegistryURLFormat, user, repo),
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
@@ -95,7 +90,7 @@ func (kr *kbrewRegistry) FetchRecipe(appName string) (string, error) {
 // Search returns app Info for give app
 func (kr *kbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error) {
 	result := []Info{}
-	appList, err := kr.List()
+	appList, err := kr.ListApps()
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +105,8 @@ func (kr *kbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error)
 	return result, nil
 }
 
-// List return Info list of all the apps
-func (kr *kbrewRegistry) List() ([]Info, error) {
+// ListApps return Info list of all the apps
+func (kr *kbrewRegistry) ListApps() ([]Info, error) {
 	infoList := []Info{}
 	err := filepath.WalkDir(kr.path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -133,4 +128,71 @@ func (kr *kbrewRegistry) List() ([]Info, error) {
 		return nil
 	})
 	return infoList, err
+}
+
+// List returns list of registries
+func (kr *kbrewRegistry) List() ([]string, error) {
+	registries := []string{}
+
+	// Registries are placed at - CONFIG_DIR/GITHUB_USER/GITHUB_REPO path
+	// Interate over all the GITHUB_USERS dirs to find the list of all kbrew registries
+	dirs, err := ioutil.ReadDir(kr.path)
+	if err != nil {
+		return nil, err
+	}
+	for _, user := range dirs {
+		if !user.IsDir() {
+			continue
+		}
+		subDirs, err := ioutil.ReadDir(filepath.Join(kr.path, user.Name()))
+		if err != nil {
+			return nil, err
+		}
+		for _, repo := range subDirs {
+			if !repo.IsDir() {
+				continue
+			}
+			registries = append(registries, fmt.Sprintf("%s/%s", user.Name(), repo.Name()))
+		}
+	}
+	return registries, nil
+}
+
+// Update pull latest commits from registry repos
+func (kr *kbrewRegistry) Update() error {
+	registries, err := kr.List()
+	if err != nil {
+		return err
+	}
+	for _, r := range registries {
+		if err := fetchUpdates(kr.path, r); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func fetchUpdates(rootDir, repo string) error {
+	gitRegistry, err := git.PlainOpen(filepath.Join(rootDir, repo))
+	if err != nil {
+		if err == git.ErrRepositoryNotExists {
+			return nil
+		}
+		return errors.Wrapf(err, "failed to init git repo %s", repo)
+	}
+	fmt.Printf("Fetching updates for registry %s\n", repo)
+	wt, err := gitRegistry.Worktree()
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch updates for %s repo", repo)
+	}
+	err = wt.Pull(&git.PullOptions{})
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return errors.Wrapf(err, "failed to fetch updates for %s repo", repo)
+	}
+	head, err := gitRegistry.Head()
+	if err != nil {
+		return errors.Wrapf(err, "failed to find head of %s repo", repo)
+	}
+	fmt.Printf("Registry %s head is set to %s\n", repo, head)
+	return nil
 }
