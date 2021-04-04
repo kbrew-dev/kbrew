@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/kbrew-dev/kbrew/pkg/version"
 
@@ -16,6 +17,14 @@ const (
 	releaseRepoName  = "kbrew-release"
 	upgradeCmd       = "curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew-release/main/install.sh | sh"
 )
+
+func getBinDir() (string, error) {
+	path, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Dir(path), nil
+}
 
 func CheckRelease(ctx context.Context) error {
 	client := github.NewClient(nil)
@@ -29,13 +38,20 @@ func CheckRelease(ctx context.Context) error {
 	}
 	// Send notification if newer version available
 	if version.VERSION != *release.TagName {
-		fmt.Printf("kbrew %s is available, upgrading...\n", version.VERSION)
+		fmt.Printf("kbrew %s is available, upgrading...\n", *release.TagName)
 		return upgradeKbrew(ctx)
 	}
 	return nil
 }
 
 func upgradeKbrew(ctx context.Context) error {
+	dir, err := getBinDir()
+	if err != nil {
+		fmt.Println("Failed to get executable dir.")
+		return err
+	}
+	os.Setenv("BINDIR", dir)
+	defer os.Unsetenv("BINDIR")
 	return execCommand(ctx, upgradeCmd)
 }
 
