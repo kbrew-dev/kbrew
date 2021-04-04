@@ -12,11 +12,33 @@ Let's talk in context of an example of at installing Kafka on a Kubernetes clust
 With kbrew all of this happens with a single command (This command will change in near future):
 
 ```
-$ kbrew install --config=./recipes/kafka-operator.yaml kafka-operator
+$ kbrew install kafka-operator
 ```
 ## Helm chart or operator or Manifests - all abstracted
 
 Kbrew abstracts the underlying chart or operator or manifest and gives you a recipe to install a stack with all basic configurations done.
+
+## Installation
+
+### Install the pre-compiled binary
+
+```bash
+$ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew-release/main/install.sh | sh
+```
+
+### Compiling from source
+
+#### Step 1: Clone the repo
+
+```bash
+$ git clone https://github.com/kbrew-dev/kbrew.git
+```
+
+#### Step 2: Build binary using make
+
+```bash
+$ make
+```
 
 ## CLI Usage
 
@@ -28,7 +50,12 @@ Installs a recipe in your cluster with all pre & posts steps and applications.
 
 ### kbrew search
 
-TBD
+Searches for a recipe for the given application. Lists all the available recipes if no application name is passed.
+
+### kbrew update
+
+Checks for kbrew updates and upgrades automatically if a newer version is available.
+Fetches updates for all the kbrew recipe registries
 
 ### kbrew remove 
 
