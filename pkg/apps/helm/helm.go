@@ -19,16 +19,19 @@ const (
 	upgrade         method = "upgrade"
 )
 
+// HelmApp holds app details
 type HelmApp struct {
 	App config.App
 }
 
+// New returns HelmApp
 func New(c config.App) *HelmApp {
 	return &HelmApp{
 		App: c,
 	}
 }
 
+// Install installs the application specified by name, version and namespace.
 func (ha *HelmApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	fmt.Printf("Installing helm app %s/%s\n", ha.App.Repository.Name, name)
 	//TODO: Resolve Deps
@@ -43,6 +46,7 @@ func (ha *HelmApp) Install(ctx context.Context, name, namespace, version string,
 	return err
 }
 
+// Uninstall uninstalls the application specified by name and namespace.
 func (ha *HelmApp) Uninstall(ctx context.Context, name, namespace string) error {
 	fmt.Printf("Unistalling helm app %s\n", name)
 	//TODO: Resolve Deps
@@ -69,6 +73,7 @@ func (ha *HelmApp) updateRepo(ctx context.Context) (string, error) {
 	return string(out), err
 }
 
+// Search searches the name passed in helm repo
 func (ha *HelmApp) Search(ctx context.Context, name string) (string, error) {
 	// Needs helm 3.2+
 	if out, err := ha.addRepo(ctx); err != nil {

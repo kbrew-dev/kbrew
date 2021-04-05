@@ -2,17 +2,22 @@ package version
 
 import "fmt"
 
-// The below variables are overrriden using the build process
-var VERSION = "dev"
-var GIT_COMMIT_ID = "none"
-var BUILD_DATE = "unknown"
+// Version The below variables are overridden using the build process
+// name of the release
+var Version = "dev"
+// GitCommitID git commit id of the release
+var GitCommitID = "none"
+// BuildDate date for the release
+var BuildDate = "unknown"
 
 const versionLongFmt = `{"Version": "%s", "GitCommit": "%s", "BuildDate": "%s"}`
 
+// Long long version of the release
 func Long() string {
-	return fmt.Sprintf(versionLongFmt, VERSION, GIT_COMMIT_ID, BUILD_DATE)
+	return fmt.Sprintf(versionLongFmt, Version, GitCommitID, BuildDate)
 }
 
+// Short short version of the release
 func Short() string {
-	return VERSION
+	return Version
 }

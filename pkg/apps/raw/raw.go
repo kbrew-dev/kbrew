@@ -68,6 +68,7 @@ func New(c config.App) (*RawApp, error) {
 	return rApp, nil
 }
 
+// Install installs the app specified by name, version and namespace.
 func (r *RawApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	fmt.Printf("Installing raw app %s/%s\n", r.App.Repository.Name, name)
 	// TODO(@prasad): Use go sdks
@@ -77,12 +78,14 @@ func (r *RawApp) Install(ctx context.Context, name, namespace, version string, o
 	return r.waitForReady(ctx, namespace)
 }
 
+// Uninstall uninstalls the app specified by name and namespace.
 func (r *RawApp) Uninstall(ctx context.Context, name, namespace string) error {
 	fmt.Printf("Unistalling raw app %s\n", name)
 	// TODO(@prasad): Use go sdks
 	return kubectlCommand(uninstall, name, namespace, r.App.Repository.URL)
 }
 
+// Search searches the app specified by name.
 func (r *RawApp) Search(ctx context.Context, name string) (string, error) {
 	return printList(r.App), nil
 }

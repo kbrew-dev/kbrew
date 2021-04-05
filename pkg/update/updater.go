@@ -27,6 +27,7 @@ func getBinDir() (string, error) {
 	return filepath.Dir(path), nil
 }
 
+// CheckRelease checks for the latest release
 func CheckRelease(ctx context.Context) error {
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, releaseRepoOwner, releaseRepoName)
@@ -37,7 +38,7 @@ func CheckRelease(ctx context.Context) error {
 		return nil
 	}
 	// Send notification if newer version available
-	if version.VERSION != *release.TagName {
+	if version.Version != *release.TagName {
 		fmt.Printf("kbrew %s is available, upgrading...\n", *release.TagName)
 		return upgradeKbrew(ctx)
 	}
