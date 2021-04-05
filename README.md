@@ -65,7 +65,9 @@ Partially implemented as of now.
 
 ### Recipe
 
-A recipe defines the end to end installation of a set of things along with some custom steps and metadata. Checkout kafka-operator.yaml in context of following terms explained:
+A recipe defines the end to end installation of a set of things along with some custom steps and metadata. 
+Checkout kafka-operator.yaml or similar recipes in context of the terms being explained here. 
+All public recipes are maintained in the repo https://github.com/kbrew-dev/kbrew-registry 
 
 #### Repository
 
