@@ -95,8 +95,11 @@ func (kr *kbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error)
 		return nil, err
 	}
 	for _, app := range appList {
-		if exactMatch && app.Name == appName {
-			return []Info{app}, nil
+		if exactMatch {
+			if app.Name == appName {
+				return []Info{app}, nil
+			}
+			continue
 		}
 		if strings.HasPrefix(app.Name, appName) {
 			result = append(result, app)
