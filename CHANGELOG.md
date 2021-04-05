@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.0.3](https://github.com/kbrew-dev/kbrew/tree/v0.0.3) (2021-04-05)
+
+[Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.2...v0.0.3)
+
+**Closed issues:**
+
+- Install script does not support Mac [\#49](https://github.com/kbrew-dev/kbrew/issues/49)
+
+**Merged pull requests:**
+
+- Add support of Mac build [\#50](https://github.com/kbrew-dev/kbrew/pull/50) ([PrasadG193](https://github.com/PrasadG193))
+
 ## [v0.0.2](https://github.com/kbrew-dev/kbrew/tree/v0.0.2) (2021-04-05)
 
 [Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.1...v0.0.2)
