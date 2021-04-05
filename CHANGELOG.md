@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.0.2](https://github.com/kbrew-dev/kbrew/tree/v0.0.2) (2021-04-05)
+
+[Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.1...v0.0.2)
+
+**Merged pull requests:**
+
+- \[README\] Update installation steps and command structs [\#48](https://github.com/kbrew-dev/kbrew/pull/48) ([PrasadG193](https://github.com/PrasadG193))
+- Add support to update kbrew registries [\#47](https://github.com/kbrew-dev/kbrew/pull/47) ([PrasadG193](https://github.com/PrasadG193))
+- Install kbrew in existing exec bin dir during update [\#46](https://github.com/kbrew-dev/kbrew/pull/46) ([PrasadG193](https://github.com/PrasadG193))
+
 ## [v0.0.1](https://github.com/kbrew-dev/kbrew/tree/v0.0.1) (2021-04-04)
 
 [Full Changelog](https://github.com/kbrew-dev/kbrew/compare/55e699e0ef038af0f8e29bbca6b3697752e1fe77...v0.0.1)
