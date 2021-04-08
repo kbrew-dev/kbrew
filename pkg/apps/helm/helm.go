@@ -19,20 +19,20 @@ const (
 	upgrade         method = "upgrade"
 )
 
-// HelmApp holds app details
-type HelmApp struct {
+// App holds helm app details
+type App struct {
 	App config.App
 }
 
-// New returns HelmApp
-func New(c config.App) *HelmApp {
-	return &HelmApp{
+// New returns Helm App
+func New(c config.App) *App {
+	return &App{
 		App: c,
 	}
 }
 
 // Install installs the application specified by name, version and namespace.
-func (ha *HelmApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
+func (ha *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	fmt.Printf("Installing helm app %s/%s\n", ha.App.Repository.Name, name)
 	//TODO: Resolve Deps
 	// Validate and install chart
@@ -47,7 +47,7 @@ func (ha *HelmApp) Install(ctx context.Context, name, namespace, version string,
 }
 
 // Uninstall uninstalls the application specified by name and namespace.
-func (ha *HelmApp) Uninstall(ctx context.Context, name, namespace string) error {
+func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
 	fmt.Printf("Unistalling helm app %s\n", name)
 	//TODO: Resolve Deps
 	// Validate and install chart
@@ -57,7 +57,7 @@ func (ha *HelmApp) Uninstall(ctx context.Context, name, namespace string) error 
 	return err
 }
 
-func (ha *HelmApp) addRepo(ctx context.Context) (string, error) {
+func (ha *App) addRepo(ctx context.Context) (string, error) {
 	// Needs helm 3.2+
 	c := exec.Command("helm", "repo", "add", ha.App.Repository.Name, ha.App.Repository.URL)
 	if out, err := c.CombinedOutput(); err != nil {
@@ -66,7 +66,7 @@ func (ha *HelmApp) addRepo(ctx context.Context) (string, error) {
 	return ha.updateRepo(ctx)
 }
 
-func (ha *HelmApp) updateRepo(ctx context.Context) (string, error) {
+func (ha *App) updateRepo(ctx context.Context) (string, error) {
 	// Needs helm 3.2+
 	c := exec.Command("helm", "repo", "update")
 	out, err := c.CombinedOutput()
@@ -74,7 +74,7 @@ func (ha *HelmApp) updateRepo(ctx context.Context) (string, error) {
 }
 
 // Search searches the name passed in helm repo
-func (ha *HelmApp) Search(ctx context.Context, name string) (string, error) {
+func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	// Needs helm 3.2+
 	if out, err := ha.addRepo(ctx); err != nil {
 		return string(out), err
