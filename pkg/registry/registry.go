@@ -24,8 +24,8 @@ const (
 // recipeFilenamePattern regex pattern to search recipe files within a registry
 var recipeFilenamePattern = regexp.MustCompile(`(?m)recipes\/(.*)\.yaml`)
 
-// kbrewRegistry is the collection of kbrew recipes
-type kbrewRegistry struct {
+// KbrewRegistry is the collection of kbrew recipes
+type KbrewRegistry struct {
 	path string
 }
 
@@ -35,16 +35,16 @@ type Info struct {
 	Path string
 }
 
-// New initializes kbrewRegistry, creates or clones default registry if not exists
-func New(configDir string) (*kbrewRegistry, error) {
-	r := &kbrewRegistry{
+// New initializes KbrewRegistry, creates or clones default registry if not exists
+func New(configDir string) (*KbrewRegistry, error) {
+	r := &KbrewRegistry{
 		path: filepath.Join(configDir, registriesDirName),
 	}
 	return r, r.init()
 }
 
 // init creates config dir and clones default registry if not exists
-func (kr *kbrewRegistry) init() error {
+func (kr *KbrewRegistry) init() error {
 	// Generate registry path
 	if _, err := os.Stat(kr.path); os.IsNotExist(err) {
 		if err := os.MkdirAll(kr.path, os.ModePerm); err != nil {
@@ -60,7 +60,7 @@ func (kr *kbrewRegistry) init() error {
 }
 
 // Add clones given kbrew registry in the config dir
-func (kr *kbrewRegistry) Add(user, repo string) error {
+func (kr *KbrewRegistry) Add(user, repo string) error {
 	fmt.Printf("Adding %s/%s registry to %s\n", user, repo, kr.path)
 	r, err := git.PlainClone(filepath.Join(kr.path, user, repo), false, &git.CloneOptions{
 		URL:               fmt.Sprintf(ghRegistryURLFormat, user, repo),
@@ -75,7 +75,7 @@ func (kr *kbrewRegistry) Add(user, repo string) error {
 }
 
 // FetchRecipe iterates over all the kbrew recipes and returns path of the app recipe file
-func (kr *kbrewRegistry) FetchRecipe(appName string) (string, error) {
+func (kr *KbrewRegistry) FetchRecipe(appName string) (string, error) {
 	// Iterate over all the registries
 	info, err := kr.Search(appName, true)
 	if err != nil {
@@ -88,7 +88,7 @@ func (kr *kbrewRegistry) FetchRecipe(appName string) (string, error) {
 }
 
 // Search returns app Info for give app
-func (kr *kbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error) {
+func (kr *KbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error) {
 	result := []Info{}
 	appList, err := kr.ListApps()
 	if err != nil {
@@ -109,7 +109,7 @@ func (kr *kbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error)
 }
 
 // ListApps return Info list of all the apps
-func (kr *kbrewRegistry) ListApps() ([]Info, error) {
+func (kr *KbrewRegistry) ListApps() ([]Info, error) {
 	infoList := []Info{}
 	err := filepath.WalkDir(kr.path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -134,7 +134,7 @@ func (kr *kbrewRegistry) ListApps() ([]Info, error) {
 }
 
 // List returns list of registries
-func (kr *kbrewRegistry) List() ([]string, error) {
+func (kr *KbrewRegistry) List() ([]string, error) {
 	registries := []string{}
 
 	// Registries are placed at - CONFIG_DIR/GITHUB_USER/GITHUB_REPO path
@@ -162,7 +162,7 @@ func (kr *kbrewRegistry) List() ([]string, error) {
 }
 
 // Update pull latest commits from registry repos
-func (kr *kbrewRegistry) Update() error {
+func (kr *KbrewRegistry) Update() error {
 	registries, err := kr.List()
 	if err != nil {
 		return err

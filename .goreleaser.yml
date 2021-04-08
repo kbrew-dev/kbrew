@@ -7,9 +7,9 @@ builds:
   main: cmd/cli/main.go
   ldflags: &ldflags
   - -s -w
-    -X github.com/kbrew-dev/kbrew/pkg/version.VERSION={{.Tag}}
-    -X github.com/kbrew-dev/kbrew/pkg/version.GIT_COMMIT_ID={{.Commit}}
-    -X github.com/kbrew-dev/kbrew/pkg/version.BUILD_DATE={{.Date}}
+    -X github.com/kbrew-dev/kbrew/pkg/version.Version={{.Tag}}
+    -X github.com/kbrew-dev/kbrew/pkg/version.GitCommitID={{.Commit}}
+    -X github.com/kbrew-dev/kbrew/pkg/version.BuildDate={{.Date}}
   env:
   - CGO_ENABLED=0
   goos:

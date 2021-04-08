@@ -36,13 +36,15 @@ const (
 
 var yamlDelimiter = regexp.MustCompile(`(?m)^---$`)
 
-type RawApp struct {
+// App represents K8s app defined with plain YAML manifests
+type App struct {
 	App      config.App
 	KubeCli  kubernetes.Interface
 	OSAppCli osversioned.Interface
 }
 
-func New(c config.App) (*RawApp, error) {
+// New returns new instance of raw App
+func New(c config.App) (*App, error) {
 	cfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -60,7 +62,7 @@ func New(c config.App) (*RawApp, error) {
 		return nil, errors.Wrapf(err, "Failed to create OpenShift client")
 	}
 
-	rApp := &RawApp{
+	rApp := &App{
 		App:      c,
 		KubeCli:  cli,
 		OSAppCli: osCli,
@@ -68,7 +70,8 @@ func New(c config.App) (*RawApp, error) {
 	return rApp, nil
 }
 
-func (r *RawApp) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
+// Install installs the app specified by name, version and namespace.
+func (r *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	fmt.Printf("Installing raw app %s/%s\n", r.App.Repository.Name, name)
 	// TODO(@prasad): Use go sdks
 	if err := kubectlCommand(install, name, namespace, r.App.Repository.URL); err != nil {
@@ -77,13 +80,15 @@ func (r *RawApp) Install(ctx context.Context, name, namespace, version string, o
 	return r.waitForReady(ctx, namespace)
 }
 
-func (r *RawApp) Uninstall(ctx context.Context, name, namespace string) error {
+// Uninstall uninstalls the app specified by name and namespace.
+func (r *App) Uninstall(ctx context.Context, name, namespace string) error {
 	fmt.Printf("Unistalling raw app %s\n", name)
 	// TODO(@prasad): Use go sdks
 	return kubectlCommand(uninstall, name, namespace, r.App.Repository.URL)
 }
 
-func (r *RawApp) Search(ctx context.Context, name string) (string, error) {
+// Search searches the app specified by name.
+func (r *App) Search(ctx context.Context, name string) (string, error) {
 	return printList(r.App), nil
 }
 
@@ -97,7 +102,7 @@ func kubectlCommand(m method, name, namespace, url string) error {
 	return c.Run()
 }
 
-func (r *RawApp) waitForReady(ctx context.Context, namespace string) error {
+func (r *App) waitForReady(ctx context.Context, namespace string) error {
 	resp, err := http.Get(r.App.Repository.URL)
 	if err != nil {
 		return errors.Wrap(err, "Failed to read resource manifest from URL")

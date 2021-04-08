@@ -121,7 +121,7 @@ func Execute() error {
 
 func checkArgs(args []string) error {
 	if len(args) == 0 {
-		errors.New("No app name provided.")
+		errors.New("No app name provided")
 	}
 	return nil
 }

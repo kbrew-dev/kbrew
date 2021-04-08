@@ -10,23 +10,29 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	Raw  RepoType = "raw"
-	Helm RepoType = "helm"
+// RepoType describes the type of kbrew app repository
+type RepoType string
 
+// ConfigDir represents dir path of kbrew config
+var ConfigDir string
+
+const (
+	// Raw repo type means the apps in the repo are raw apps
+	Raw RepoType = "raw"
+	// Helm repo means the apps in the repo are helm apps
+	Helm RepoType = "helm"
+	// RegistriesDirName represents the dir name within ConfigDir holding all the kbrew registries
 	RegistriesDirName = "registries"
 )
 
-var ConfigDir string
-
-type RepoType string
-
+// AppConfig is the kbrew recipe configuration
 type AppConfig struct {
 	APIVersion string `yaml:"apiVersion"`
 	Kind       string `yaml:"kind"`
 	App        App    `yaml:"app"`
 }
 
+// App hold app details set in kbrew recipe
 type App struct {
 	Repository  Repository    `yaml:"repository"`
 	Name        string        `yaml:"name"`
@@ -38,22 +44,26 @@ type App struct {
 	PostInstall []PostInstall `yaml:"post_install"`
 }
 
+// Repository is the repo for kbrew app
 type Repository struct {
 	Name string   `yaml:"name"`
 	URL  string   `yaml:"url"`
 	Type RepoType `yaml:"type"`
 }
 
+// PreInstall contains Apps and Steps that need to be installed/executed before installing the main app
 type PreInstall struct {
 	Apps  []string
 	Steps []string
 }
 
+// PostInstall contains Apps and Steps that need to be installed/executed after installing the main app
 type PostInstall struct {
 	Apps  []string
 	Steps []string
 }
 
+// New parses kbrew recipe configuration and returns AppConfig instance
 func New(path string) (*AppConfig, error) {
 	c := &AppConfig{}
 	configFile, err := os.Open(path)
@@ -73,6 +83,8 @@ func New(path string) (*AppConfig, error) {
 	return c, nil
 }
 
+// InitConfig initializes ConfigDir.
+// If ConfigDir does not exists, create it
 func InitConfig() {
 	if ConfigDir != "" {
 		return

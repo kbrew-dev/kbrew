@@ -14,19 +14,24 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/config"
 )
 
+// Method defines operation performed on the apps
 type Method string
 
 const (
-	Install   Method = "install"
+	// Install method to install the app
+	Install Method = "install"
+	// Uninstall method to uninstall the app
 	Uninstall Method = "uninstall"
 )
 
+// App represents a K8s applications than can be managed with kbrew recipes
 type App interface {
 	Install(ctx context.Context, name, namespace string, version string, opt map[string]string) error
 	Uninstall(ctx context.Context, name, namespace string) error
 	Search(ctx context.Context, name string) (string, error)
 }
 
+// Run fetches recipe from registry for the app and performs given operation
 func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string) error {
 	c, err := config.New(appConfigPath)
 	if err != nil {
@@ -100,36 +105,6 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 		return errors.New(fmt.Sprintf("Unsupported method %s", m))
 	}
 	return nil
-}
-
-func Search(args []string, configFile, namespace string) error {
-	ctx := context.Background()
-	c, err := config.New(configFile)
-	if err != nil {
-		return err
-	}
-
-	var app App
-	switch c.App.Repository.Type {
-	case config.Helm:
-		app = helm.New(c.App)
-	case config.Raw:
-		app, err = raw.New(c.App)
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
-	}
-
-	if len(args) == 0 {
-		out, err := app.Search(ctx, "")
-		fmt.Print(string(out))
-		return err
-	}
-	out, err := app.Search(ctx, args[0])
-	fmt.Print(string(out))
-	return err
 }
 
 func execCommand(cmd string) error {
