@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kbrew-dev/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/engine"
 )
 
 type method string
@@ -41,7 +43,12 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	if _, err := ha.addRepo(ctx); err != nil {
 		return err
 	}
-	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
+
+	if err := ha.resolveArgs(); err != nil {
+		return err
+	}
+
+	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
 	fmt.Println(out)
 	return err
 }
@@ -52,7 +59,7 @@ func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
-	out, err := helmCommand(uninstallMethod, name, "", namespace, "")
+	out, err := helmCommand(uninstallMethod, name, "", namespace, "", nil)
 	fmt.Println(out)
 	return err
 }
@@ -90,7 +97,7 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	return string(out), err
 }
 
-func helmCommand(m method, name, version, namespace, chart string) (string, error) {
+func helmCommand(m method, name, version, namespace, chart string, chartArgs map[string]string) (string, error) {
 	// Needs helm 3.2+
 	c := exec.Command("helm", string(m), name, "--namespace", namespace)
 	if chart != "" {
@@ -102,6 +109,44 @@ func helmCommand(m method, name, version, namespace, chart string) (string, erro
 	if m == installMethod {
 		c.Args = append(c.Args, "--wait", "--create-namespace")
 	}
+
+	if chartArgs != nil && len(chartArgs) != 0 {
+		c.Args = append(c.Args, appendChartArgs(chartArgs)...)
+	}
+
 	out, err := c.CombinedOutput()
 	return string(out), err
+}
+
+func (ha *App) resolveArgs() error {
+	//TODO: user global singleton kubeconfig in all modules
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+	if err != nil {
+		return errors.Wrapf(err, "Failed to load Kubernetes config")
+	}
+
+	template := engine.NewEngine(config)
+
+	// TODO(@sahil.lakhwani): Parse only templated arguments
+	if len(ha.App.Args) != 0 {
+		for arg, value := range ha.App.Args {
+			v, err := template.Render(value)
+			if err != nil {
+				return err
+			}
+			ha.App.Args[arg] = v
+		}
+	}
+	return nil
+}
+
+func appendChartArgs(args map[string]string) []string {
+	var s []string
+	for k, v := range args {
+		s = append(s, "--set", k+"="+v)
+	}
+	return s
 }

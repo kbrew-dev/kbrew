@@ -34,14 +34,15 @@ type AppConfig struct {
 
 // App hold app details set in kbrew recipe
 type App struct {
-	Repository  Repository    `yaml:"repository"`
-	Name        string        `yaml:"name"`
-	Namespace   string        `yaml:"namespace"`
-	URL         string        `yaml:"url"`
-	SHA256      string        `yaml:"sha256"`
-	Version     string        `yaml:"version"`
-	PreInstall  []PreInstall  `yaml:"pre_install"`
-	PostInstall []PostInstall `yaml:"post_install"`
+	Args        map[string]string `yaml:"args"`
+	Repository  Repository        `yaml:"repository"`
+	Name        string            `yaml:"name"`
+	Namespace   string            `yaml:"namespace"`
+	URL         string            `yaml:"url"`
+	SHA256      string            `yaml:"sha256"`
+	Version     string            `yaml:"version"`
+	PreInstall  []PreInstall      `yaml:"pre_install"`
+	PostInstall []PostInstall     `yaml:"post_install"`
 }
 
 // Repository is the repo for kbrew app
