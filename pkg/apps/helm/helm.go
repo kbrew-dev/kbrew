@@ -7,10 +7,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kbrew-dev/kbrew/pkg/config"
-	"github.com/kbrew-dev/kbrew/pkg/engine"
 )
 
 type method string
@@ -41,10 +39,6 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	// TODO(@prasad): Use go sdks
 	// Needs helm3
 	if _, err := ha.addRepo(ctx); err != nil {
-		return err
-	}
-
-	if err := ha.resolveArgs(); err != nil {
 		return err
 	}
 
@@ -114,33 +108,10 @@ func helmCommand(m method, name, version, namespace, chart string, chartArgs map
 		c.Args = append(c.Args, appendChartArgs(chartArgs)...)
 	}
 
-	out, err := c.CombinedOutput()
-	return string(out), err
-}
-
-func (ha *App) resolveArgs() error {
-	//TODO: user global singleton kubeconfig in all modules
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	).ClientConfig()
-	if err != nil {
-		return errors.Wrapf(err, "Failed to load Kubernetes config")
-	}
-
-	template := engine.NewEngine(config)
-
-	// TODO(@sahil.lakhwani): Parse only templated arguments
-	if len(ha.App.Args) != 0 {
-		for arg, value := range ha.App.Args {
-			v, err := template.Render(value)
-			if err != nil {
-				return err
-			}
-			ha.App.Args[arg] = v
-		}
-	}
-	return nil
+	// out, err := c.CombinedOutput()
+	// return string(out), err
+	fmt.Println(">", c.Args)
+	return "", nil
 }
 
 func appendChartArgs(args map[string]string) []string {
