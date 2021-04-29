@@ -108,10 +108,8 @@ func helmCommand(m method, name, version, namespace, chart string, chartArgs map
 		c.Args = append(c.Args, appendChartArgs(chartArgs)...)
 	}
 
-	// out, err := c.CombinedOutput()
-	// return string(out), err
-	fmt.Println(">", c.Args)
-	return "", nil
+	out, err := c.CombinedOutput()
+	return string(out), err
 }
 
 func appendChartArgs(args map[string]string) []string {
