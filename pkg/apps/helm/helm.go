@@ -41,7 +41,8 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	if _, err := ha.addRepo(ctx); err != nil {
 		return err
 	}
-	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
+
+	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
 	fmt.Println(out)
 	return err
 }
@@ -52,7 +53,7 @@ func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
-	out, err := helmCommand(uninstallMethod, name, "", namespace, "")
+	out, err := helmCommand(uninstallMethod, name, "", namespace, "", nil)
 	fmt.Println(out)
 	return err
 }
@@ -90,7 +91,7 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	return string(out), err
 }
 
-func helmCommand(m method, name, version, namespace, chart string) (string, error) {
+func helmCommand(m method, name, version, namespace, chart string, chartArgs map[string]string) (string, error) {
 	// Needs helm 3.2+
 	c := exec.Command("helm", string(m), name, "--namespace", namespace)
 	if chart != "" {
@@ -102,6 +103,19 @@ func helmCommand(m method, name, version, namespace, chart string) (string, erro
 	if m == installMethod {
 		c.Args = append(c.Args, "--wait", "--create-namespace")
 	}
+
+	if chartArgs != nil && len(chartArgs) != 0 {
+		c.Args = append(c.Args, appendChartArgs(chartArgs)...)
+	}
+
 	out, err := c.CombinedOutput()
 	return string(out), err
+}
+
+func appendChartArgs(args map[string]string) []string {
+	var s []string
+	for k, v := range args {
+		s = append(s, "--set", k+"="+v)
+	}
+	return s
 }
