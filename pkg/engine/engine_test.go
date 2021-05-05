@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -66,10 +65,6 @@ func TestRender(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			e := NewEngine(nil)
 			o, err := e.Render(tc.arg)
-
-			if err != nil {
-				fmt.Println(err)
-			}
 
 			if diff := cmp.Diff(tc.want.result, o); diff != "" {
 				t.Errorf("r: -want, +got:\n%s", diff)
