@@ -128,12 +128,19 @@ func (ha *App) resolveArgs() error {
 		return errors.Wrapf(err, "Failed to load Kubernetes config")
 	}
 
+	cliArgs := cliValuesMap()
+
 	template := engine.NewEngine(config)
 
+	var v string
 	// TODO(@sahil.lakhwani): Parse only templated arguments
 	if len(ha.App.Args) != 0 {
 		for arg, value := range ha.App.Args {
-			v, err := template.Render(value)
+			if cliValue, ok := cliArgs[arg]; ok {
+				v, err = template.Render(cliValue)
+			} else {
+				v, err = template.Render(value)
+			}
 			if err != nil {
 				return err
 			}

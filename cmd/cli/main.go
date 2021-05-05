@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/kbrew-dev/kbrew/pkg/apps"
+	"github.com/kbrew-dev/kbrew/pkg/apps/helm"
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/registry"
 	"github.com/kbrew-dev/kbrew/pkg/update"
@@ -102,6 +103,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file (default is $HOME/.kbrew.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&config.ConfigDir, "config-dir", "", "", "config dir (default is $HOME/.kbrew)")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
+
+	installCmd.PersistentFlags().StringArrayVarP(&helm.CliValues, "set", "s", []string{}, "set helm app args")
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(installCmd)
