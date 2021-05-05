@@ -5,9 +5,10 @@ go 1.16
 replace github.com/graymeta/stow => github.com/kastenhq/stow v0.2.6-kasten.1
 
 require (
-	github.com/Masterminds/sprig v2.15.0+incompatible
-	github.com/go-git/go-billy/v5 v5.0.0 // indirect
+	github.com/BurntSushi/toml v0.3.1
+	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/go-git/go-git/v5 v5.2.0
+	github.com/google/go-cmp v0.5.4
 	github.com/google/go-github/v27 v27.0.6
 	github.com/kanisterio/kanister v0.0.0-20210224062123-08e898f3dbf3
 	github.com/mitchellh/go-homedir v1.1.0
@@ -17,6 +18,13 @@ require (
 	github.com/spf13/cobra v1.1.3
 	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	helm.sh/helm/v3 v3.5.4
 	k8s.io/api v0.20.4
 	k8s.io/client-go v0.20.4
+	sigs.k8s.io/yaml v1.2.0
+)
+
+replace (
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
+	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 )
