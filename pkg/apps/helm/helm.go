@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kbrew-dev/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/engine"
 )
 
 type method string
@@ -41,6 +43,9 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	if _, err := ha.addRepo(ctx); err != nil {
 		return err
 	}
+	if err := ha.resolveArgs(); err != nil {
+		return err
+	}
 
 	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
 	fmt.Println(out)
@@ -56,6 +61,31 @@ func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
 	out, err := helmCommand(uninstallMethod, name, "", namespace, "", nil)
 	fmt.Println(out)
 	return err
+}
+
+func (ha *App) resolveArgs() error {
+	//TODO: user global singleton kubeconfig in all modules
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+	if err != nil {
+		return errors.Wrapf(err, "Failed to load Kubernetes config")
+	}
+
+	e := engine.NewEngine(config)
+
+	// TODO(@sahil.lakhwani): Parse only templated arguments
+	if len(ha.App.Args) != 0 {
+		for arg, value := range ha.App.Args {
+			v, err := e.Render(value)
+			if err != nil {
+				return err
+			}
+			ha.App.Args[arg] = v
+		}
+	}
+	return nil
 }
 
 func (ha *App) addRepo(ctx context.Context) (string, error) {
