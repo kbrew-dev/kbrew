@@ -1,3 +1,8 @@
+// Copyright The Helm Authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// The following code is taken helm, which was found here:
+// https://github.com/helm/helm/blob/main/pkg/engine/funcs.go
+
 package engine
 
 import (
