@@ -1,5 +1,22 @@
 # Changelog
 
+## [v0.0.4](https://github.com/kbrew-dev/kbrew/tree/v0.0.4) (2021-05-13)
+
+[Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.3...v0.0.4)
+
+**Closed issues:**
+
+- Add Go lint checks in CI [\#37](https://github.com/kbrew-dev/kbrew/issues/37)
+
+**Merged pull requests:**
+
+- Args templating engine [\#67](https://github.com/kbrew-dev/kbrew/pull/67) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- arguments to helm app [\#66](https://github.com/kbrew-dev/kbrew/pull/66) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- Remove stale recipes dir [\#61](https://github.com/kbrew-dev/kbrew/pull/61) ([PrasadG193](https://github.com/PrasadG193))
+- Added link to registry [\#53](https://github.com/kbrew-dev/kbrew/pull/53) ([vishal-biyani](https://github.com/vishal-biyani))
+- Add go lint checks [\#52](https://github.com/kbrew-dev/kbrew/pull/52) ([mahendrabagul](https://github.com/mahendrabagul))
+- fix exact match for registry [\#51](https://github.com/kbrew-dev/kbrew/pull/51) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+
 ## [v0.0.3](https://github.com/kbrew-dev/kbrew/tree/v0.0.3) (2021-04-05)
 
 [Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.2...v0.0.3)
