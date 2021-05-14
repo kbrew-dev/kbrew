@@ -34,7 +34,7 @@ var (
 		Use:   "version",
 		Short: "Print version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(version.Long())
+			fmt.Println(version.Long(context.Background()))
 		},
 	}
 
