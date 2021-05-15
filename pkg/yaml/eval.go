@@ -6,6 +6,7 @@ import (
 
 	"github.com/mikefarah/yq/v4/pkg/yqlib"
 	"github.com/pkg/errors"
+	logging "gopkg.in/op/go-logging.v1"
 )
 
 type evaluator struct {
@@ -13,6 +14,8 @@ type evaluator struct {
 }
 
 func NewEvaluator() evaluator {
+	// TODO(@sahil-lakhwani): check if there's a better way of avoiding yq debug logs
+	logging.SetLevel(logging.CRITICAL, "yq-lib")
 	return evaluator{s: yqlib.NewStreamEvaluator()}
 }
 
