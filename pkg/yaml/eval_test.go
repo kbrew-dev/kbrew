@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	sample_yaml = `apiVersion: networking.k8s.io/v1
+	sampleYaml = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-scraping
 `
-	bad_yaml = `apiVersion: networking.k8s.io/v1
+	badYaml = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
 	name: allow-scraping
@@ -23,9 +23,9 @@ kind: NetworkPolicy
 metadata:
   name: allow-scraping
 `
-	root_expression = "."
+	rootExpression = "."
 
-	apiVersion_expression = `select(.kind  == "NetworkPolicy" and .metadata.name == "allow-scraping").apiVersion |= "networking.k8s.io/v1beta1"`
+	apiVersionExpression = `select(.kind  == "NetworkPolicy" and .metadata.name == "allow-scraping").apiVersion |= "networking.k8s.io/v1beta1"`
 )
 
 func TestEval(t *testing.T) {
@@ -46,17 +46,17 @@ func TestEval(t *testing.T) {
 	}{
 		"CheckSimpleYaml": {
 			arg: arg{
-				manifest:   sample_yaml,
-				expression: root_expression,
+				manifest:   sampleYaml,
+				expression: rootExpression,
 			},
 			want: want{
-				result: sample_yaml,
+				result: sampleYaml,
 			},
 		},
 		"CheckApiVersionChange": {
 			arg: arg{
-				manifest:   sample_yaml,
-				expression: apiVersion_expression,
+				manifest:   sampleYaml,
+				expression: apiVersionExpression,
 			},
 			want: want{
 				result: apiVersionYaml,
@@ -64,8 +64,8 @@ func TestEval(t *testing.T) {
 		},
 		"CheckBadYaml": {
 			arg: arg{
-				manifest:   bad_yaml,
-				expression: root_expression,
+				manifest:   badYaml,
+				expression: rootExpression,
 			},
 			want: want{
 				err: errors.Wrap(errors.New("yaml: line 4: found character that cannot start any token"), "Failed to evaluate"),

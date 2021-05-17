@@ -9,14 +9,20 @@ import (
 	logging "gopkg.in/op/go-logging.v1"
 )
 
+// Evaluator parses yaml documents and patches them by applying given expressions
+type Evaluator interface {
+	Eval(manifest string, expresssion string) (string, error)
+}
+
 type evaluator struct {
 	s yqlib.StreamEvaluator
 }
 
-func NewEvaluator() evaluator {
+// NewEvaluator returns a new wrapped streamevaluator
+func NewEvaluator() Evaluator {
 	// TODO(@sahil-lakhwani): check if there's a better way of avoiding yq debug logs
 	logging.SetLevel(logging.CRITICAL, "yq-lib")
-	return evaluator{s: yqlib.NewStreamEvaluator()}
+	return &evaluator{s: yqlib.NewStreamEvaluator()}
 }
 
 func (e *evaluator) Eval(manifest string, expresssion string) (string, error) {
