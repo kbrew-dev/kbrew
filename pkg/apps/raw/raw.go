@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 	"text/tabwriter"
 
 	osappsv1 "github.com/openshift/api/apps/v1"
@@ -18,12 +19,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
+
 	// Load all auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/kube"
+	"github.com/kbrew-dev/kbrew/pkg/yaml"
 )
 
 type method string
@@ -73,8 +76,26 @@ func New(c config.App) (*App, error) {
 // Install installs the app specified by name, version and namespace.
 func (r *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	fmt.Printf("Installing raw app %s/%s\n", r.App.Repository.Name, name)
+
+	manifest, err := getManifest(r.App.Repository.URL)
+	if err != nil {
+		return err
+	}
+
+	patchedManifest, err := patchManifest(manifest, r.App.Args)
+	if err != nil {
+		return err
+	}
+
+	tmpFile, err := createTempFile(patchedManifest)
+	if err != nil {
+		return err
+	}
+
+	defer os.Remove(tmpFile)
+
 	// TODO(@prasad): Use go sdks
-	if err := kubectlCommand(install, name, namespace, r.App.Repository.URL); err != nil {
+	if err := kubectlCommand(install, name, namespace, tmpFile); err != nil {
 		return err
 	}
 	return r.waitForReady(ctx, namespace)
@@ -173,4 +194,69 @@ func printList(app config.App) string {
 	fmt.Fprintln(w, fmt.Sprintf("%s\t%s\t%s", app.Name, app.Version, app.Repository.Type))
 	w.Flush()
 	return b.String()
+}
+
+func patchManifest(manifest string, patches map[string]interface{}) (string, error) {
+	e := yaml.NewEvaluator()
+	patchedManifest := manifest
+	var err error
+	for _, expression := range createExpressions(patches) {
+		patchedManifest, err = e.Eval(patchedManifest, expression)
+		if err != nil {
+			return "", err
+		}
+	}
+	return patchedManifest, nil
+}
+
+func getManifest(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", errors.Wrap(err, "Error fetching from app URL")
+	}
+
+	defer resp.Body.Close()
+
+	manifest, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "Error fetching from app URL")
+	}
+	return string(manifest), nil
+}
+
+func createTempFile(manifest string) (string, error) {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "kbrew-")
+	if err != nil {
+		return "", errors.Wrap(err, "Error creating temp manifest")
+	}
+
+	if _, err = tmpFile.Write([]byte(manifest)); err != nil {
+		return "", errors.Wrap(err, "Error writing to temp manifest")
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		return "", errors.Wrap(err, "Error closing temp manifest")
+	}
+
+	return tmpFile.Name(), nil
+}
+
+func createExpressions(patches map[string]interface{}) []string {
+	var expressions []string
+
+	for k, v := range patches {
+		// Type assertion is necessary for yq, strings without quotes result in error
+		switch v.(type) {
+		case string:
+			v = fmt.Sprintf("\"%s\"", v)
+		}
+
+		keys := strings.Split(k, ".")
+		// keys[0] - kind
+		// keys[1] - metadata.name
+		// keys[2:] - path of the field
+		e := fmt.Sprintf(`select(.kind  == "%s" and .metadata.name == "%s").%s |= %v`, keys[0], keys[1], strings.Join(keys[2:], "."), v)
+		expressions = append(expressions, e)
+	}
+	return expressions
 }
