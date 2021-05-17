@@ -78,7 +78,7 @@ func (ha *App) resolveArgs() error {
 	// TODO(@sahil.lakhwani): Parse only templated arguments
 	if len(ha.App.Args) != 0 {
 		for arg, value := range ha.App.Args {
-			v, err := e.Render(value)
+			v, err := e.Render(fmt.Sprintf("%v", value))
 			if err != nil {
 				return err
 			}
@@ -121,7 +121,7 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	return string(out), err
 }
 
-func helmCommand(m method, name, version, namespace, chart string, chartArgs map[string]string) (string, error) {
+func helmCommand(m method, name, version, namespace, chart string, chartArgs map[string]interface{}) (string, error) {
 	// Needs helm 3.2+
 	c := exec.Command("helm", string(m), name, "--namespace", namespace)
 	if chart != "" {
@@ -142,10 +142,10 @@ func helmCommand(m method, name, version, namespace, chart string, chartArgs map
 	return string(out), err
 }
 
-func appendChartArgs(args map[string]string) []string {
+func appendChartArgs(args map[string]interface{}) []string {
 	var s []string
 	for k, v := range args {
-		s = append(s, "--set", k+"="+v)
+		s = append(s, "--set", k+"="+fmt.Sprintf("%s", v))
 	}
 	return s
 }
