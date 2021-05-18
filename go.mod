@@ -11,6 +11,7 @@ require (
 	github.com/google/go-cmp v0.5.4
 	github.com/google/go-github/v27 v27.0.6
 	github.com/kanisterio/kanister v0.0.0-20210224062123-08e898f3dbf3
+	github.com/mikefarah/yq/v4 v4.9.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v0.0.0-20200526144822-34f54f12813a
 	github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c
@@ -18,6 +19,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.5.4
 	k8s.io/api v0.20.4
