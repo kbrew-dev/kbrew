@@ -35,6 +35,8 @@ const (
 	install   method = "apply"
 	uninstall method = "delete"
 	upgrade   method = "apply"
+
+	evalExpression = `select(.kind  == "%s" and .metadata.name == "%s").%s |= %v`
 )
 
 var yamlDelimiter = regexp.MustCompile(`(?m)^---$`)
@@ -87,15 +89,8 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 		return err
 	}
 
-	tmpFile, err := createTempFile(patchedManifest)
-	if err != nil {
-		return err
-	}
-
-	defer os.Remove(tmpFile)
-
 	// TODO(@prasad): Use go sdks
-	if err := kubectlCommand(install, name, namespace, tmpFile); err != nil {
+	if err := kubectlCommand(install, name, namespace, patchedManifest); err != nil {
 		return err
 	}
 	return r.waitForReady(ctx, namespace)
@@ -113,11 +108,21 @@ func (r *App) Search(ctx context.Context, name string) (string, error) {
 	return printList(r.App), nil
 }
 
-func kubectlCommand(m method, name, namespace, url string) error {
-	c := exec.Command("kubectl", string(m), "-f", url)
+func kubectlCommand(m method, name, namespace, manifest string) error {
+	var c *exec.Cmd
+	switch m {
+	case install:
+		c = exec.Command("kubectl", string(m), "-f", "-")
+		// Pass the manifest on STDIN
+		c.Stdin = strings.NewReader(manifest)
+	default:
+		c = exec.Command("kubectl", string(m), "-f", manifest)
+	}
+
 	if namespace != "" {
 		c.Args = append(c.Args, "--namespace", namespace)
 	}
+
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Run()
@@ -224,23 +229,6 @@ func getManifest(url string) (string, error) {
 	return string(manifest), nil
 }
 
-func createTempFile(manifest string) (string, error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "kbrew-")
-	if err != nil {
-		return "", errors.Wrap(err, "Error creating temp manifest")
-	}
-
-	if _, err = tmpFile.Write([]byte(manifest)); err != nil {
-		return "", errors.Wrap(err, "Error writing to temp manifest")
-	}
-
-	if err := tmpFile.Close(); err != nil {
-		return "", errors.Wrap(err, "Error closing temp manifest")
-	}
-
-	return tmpFile.Name(), nil
-}
-
 func createExpressions(patches map[string]interface{}) []string {
 	var expressions []string
 
@@ -249,13 +237,14 @@ func createExpressions(patches map[string]interface{}) []string {
 		switch v.(type) {
 		case string:
 			v = fmt.Sprintf("\"%s\"", v)
+		default:
 		}
 
 		keys := strings.Split(k, ".")
 		// keys[0] - kind
 		// keys[1] - metadata.name
 		// keys[2:] - path of the field
-		e := fmt.Sprintf(`select(.kind  == "%s" and .metadata.name == "%s").%s |= %v`, keys[0], keys[1], strings.Join(keys[2:], "."), v)
+		e := fmt.Sprintf(evalExpression, keys[0], keys[1], strings.Join(keys[2:], "."), v)
 		expressions = append(expressions, e)
 	}
 	return expressions
