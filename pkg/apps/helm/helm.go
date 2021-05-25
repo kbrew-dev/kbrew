@@ -47,7 +47,7 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 		return err
 	}
 
-	out, err := helmCommand(installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
+	out, err := helmCommand(ctx, installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
 	fmt.Println(out)
 	return err
 }
@@ -58,7 +58,7 @@ func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
-	out, err := helmCommand(uninstallMethod, name, "", namespace, "", nil)
+	out, err := helmCommand(ctx, uninstallMethod, name, "", namespace, "", nil)
 	fmt.Println(out)
 	return err
 }
@@ -90,7 +90,7 @@ func (ha *App) resolveArgs() error {
 
 func (ha *App) addRepo(ctx context.Context) (string, error) {
 	// Needs helm 3.2+
-	c := exec.Command("helm", "repo", "add", ha.App.Repository.Name, ha.App.Repository.URL)
+	c := exec.CommandContext(ctx, "helm", "repo", "add", ha.App.Repository.Name, ha.App.Repository.URL)
 	if out, err := c.CombinedOutput(); err != nil {
 		return string(out), err
 	}
@@ -99,7 +99,7 @@ func (ha *App) addRepo(ctx context.Context) (string, error) {
 
 func (ha *App) updateRepo(ctx context.Context) (string, error) {
 	// Needs helm 3.2+
-	c := exec.Command("helm", "repo", "update")
+	c := exec.CommandContext(ctx, "helm", "repo", "update")
 	out, err := c.CombinedOutput()
 	return string(out), err
 }
@@ -110,7 +110,7 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	if out, err := ha.addRepo(ctx); err != nil {
 		return string(out), err
 	}
-	c := exec.Command("helm", "search", "repo", fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
+	c := exec.CommandContext(ctx, "helm", "search", "repo", fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
 	out, err := c.CombinedOutput()
 	if err != nil {
 		return string(out), err
@@ -121,9 +121,9 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	return string(out), err
 }
 
-func helmCommand(m method, name, version, namespace, chart string, chartArgs map[string]interface{}) (string, error) {
+func helmCommand(ctx context.Context, m method, name, version, namespace, chart string, chartArgs map[string]interface{}) (string, error) {
 	// Needs helm 3.2+
-	c := exec.Command("helm", string(m), name, "--namespace", namespace)
+	c := exec.CommandContext(ctx, "helm", string(m), name, "--namespace", namespace)
 	if chart != "" {
 		c.Args = append(c.Args, chart)
 	}
@@ -131,7 +131,10 @@ func helmCommand(m method, name, version, namespace, chart string, chartArgs map
 		c.Args = append(c.Args, "--version", version)
 	}
 	if m == installMethod {
-		c.Args = append(c.Args, "--wait", "--create-namespace")
+		// Add extra time to wait arg so that context will be timeout out before helm command failure
+		// This is for catching timeout through context instead of parsing helm command output
+		// This might change once we switch to SDKs
+		c.Args = append(c.Args, "--wait", "--timeout", "5h0m", "--create-namespace")
 	}
 
 	if chartArgs != nil && len(chartArgs) != 0 {
