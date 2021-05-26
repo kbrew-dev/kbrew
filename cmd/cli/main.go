@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -15,9 +16,12 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/version"
 )
 
+const defaultTimeout = "15m0s"
+
 var (
 	configFile string
 	namespace  string
+	timeout    string
 
 	rootCmd = &cobra.Command{
 		Use:   "kbrew",
@@ -108,6 +112,8 @@ func init() {
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(updateCmd)
+
+	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
 }
 
 func main() {
@@ -128,6 +134,13 @@ func checkArgs(args []string) error {
 
 func manageApp(m apps.Method, args []string) error {
 	ctx := context.Background()
+	if timeout == "" {
+		timeout = defaultTimeout
+	}
+	timeoutDur, err := time.ParseDuration(timeout)
+	if err != nil {
+		return err
+	}
 	for _, a := range args {
 		reg, err := registry.New(config.ConfigDir)
 		if err != nil {
@@ -137,7 +150,9 @@ func manageApp(m apps.Method, args []string) error {
 		if err != nil {
 			return err
 		}
-		if err := apps.Run(ctx, m, strings.ToLower(a), namespace, configFile); err != nil {
+		ctxTimeout, cancel := context.WithTimeout(ctx, timeoutDur)
+		defer cancel()
+		if err := apps.Run(ctxTimeout, m, strings.ToLower(a), namespace, configFile); err != nil {
 			return err
 		}
 	}

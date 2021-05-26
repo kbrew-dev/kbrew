@@ -90,7 +90,7 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 	}
 
 	// TODO(@prasad): Use go sdks
-	if err := kubectlCommand(install, name, namespace, patchedManifest); err != nil {
+	if err := kubectlCommand(ctx, install, name, namespace, patchedManifest); err != nil {
 		return err
 	}
 	return r.waitForReady(ctx, namespace)
@@ -100,7 +100,7 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 func (r *App) Uninstall(ctx context.Context, name, namespace string) error {
 	fmt.Printf("Unistalling raw app %s\n", name)
 	// TODO(@prasad): Use go sdks
-	return kubectlCommand(uninstall, name, namespace, r.App.Repository.URL)
+	return kubectlCommand(ctx, uninstall, name, namespace, r.App.Repository.URL)
 }
 
 // Search searches the app specified by name.
@@ -108,15 +108,15 @@ func (r *App) Search(ctx context.Context, name string) (string, error) {
 	return printList(r.App), nil
 }
 
-func kubectlCommand(m method, name, namespace, manifest string) error {
+func kubectlCommand(ctx context.Context, m method, name, namespace, manifest string) error {
 	var c *exec.Cmd
 	switch m {
 	case install:
-		c = exec.Command("kubectl", string(m), "-f", "-")
+		c = exec.CommandContext(ctx, "kubectl", string(m), "-f", "-")
 		// Pass the manifest on STDIN
 		c.Stdin = strings.NewReader(manifest)
 	default:
-		c = exec.Command("kubectl", string(m), "-f", manifest)
+		c = exec.CommandContext(ctx, "kubectl", string(m), "-f", manifest)
 	}
 
 	if namespace != "" {
