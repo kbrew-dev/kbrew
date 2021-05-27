@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,7 +26,16 @@ const (
 	Helm RepoType = "helm"
 	// RegistriesDirName represents the dir name within ConfigDir holding all the kbrew registries
 	RegistriesDirName = "registries"
+
+	// Analytics setting flags
+	AnalyticsUUID    = "analyticsUUID"
+	AnalyticsEnabled = "analyticsEnabled"
 )
+
+type KbrewConfig struct {
+	AnalyticsUUID    string `yaml:"analyticsUUID"`
+	AnalyticsEnabled bool   `yaml:"analyticsEnabled"`
+}
 
 // AppConfig is the kbrew recipe configuration
 type AppConfig struct {
@@ -65,7 +77,7 @@ type PostInstall struct {
 }
 
 // New parses kbrew recipe configuration and returns AppConfig instance
-func New(path string) (*AppConfig, error) {
+func NewApp(name, path string) (*AppConfig, error) {
 	c := &AppConfig{}
 	configFile, err := os.Open(path)
 	defer configFile.Close()
@@ -81,7 +93,17 @@ func New(path string) (*AppConfig, error) {
 	if len(b) != 0 {
 		yaml.Unmarshal(b, c)
 	}
+	c.App.Name = name
 	return c, nil
+}
+
+func NewKbrew() (*KbrewConfig, error) {
+	kc := &KbrewConfig{}
+	err := viper.Unmarshal(kc)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read kbrew config")
+	}
+	return kc, nil
 }
 
 // InitConfig initializes ConfigDir.
@@ -99,5 +121,20 @@ func InitConfig() {
 	if _, err := os.Stat(ConfigDir); os.IsNotExist(err) {
 		err := os.MkdirAll(ConfigDir, os.ModePerm)
 		cobra.CheckErr(err)
+	}
+
+	// Create kbrew config yaml
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(ConfigDir)
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Create config file
+			viper.Set(AnalyticsUUID, uuid.NewV4().String())
+			viper.Set(AnalyticsEnabled, true)
+			cobra.CheckErr(viper.SafeWriteConfig())
+		} else {
+			cobra.CheckErr(err)
+		}
 	}
 }

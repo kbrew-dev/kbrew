@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/kbrew-dev/kbrew/pkg/apps/raw"
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/engine"
 )
@@ -16,9 +18,9 @@ import (
 type method string
 
 const (
-	installMethod   method = "install"
-	uninstallMethod method = "delete"
-	upgrade         method = "upgrade"
+	installMethod     method = "install"
+	uninstallMethod   method = "delete"
+	getManifestMethod method = "get manifest"
 )
 
 // App holds helm app details
@@ -104,6 +106,12 @@ func (ha *App) updateRepo(ctx context.Context) (string, error) {
 	return string(out), err
 }
 
+func (ha *App) getManifests(ctx context.Context, namespace string) (string, error) {
+	c := exec.CommandContext(ctx, "helm", "get", "manifest", ha.App.Name, "--namespace", namespace)
+	out, err := c.CombinedOutput()
+	return string(out), err
+}
+
 // Search searches the name passed in helm repo
 func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	// Needs helm 3.2+
@@ -119,6 +127,14 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 		return string(out), errors.New("No results found")
 	}
 	return string(out), err
+}
+
+func (ha *App) Workloads(ctx context.Context, namespace string) ([]corev1.ObjectReference, error) {
+	manifest, err := ha.getManifests(ctx, namespace)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to get helm chart manifests")
+	}
+	return raw.ParseManifestYAML(manifest, namespace)
 }
 
 func helmCommand(ctx context.Context, m method, name, version, namespace, chart string, chartArgs map[string]interface{}) (string, error) {

@@ -93,6 +93,7 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 	if err := kubectlCommand(ctx, install, name, namespace, patchedManifest); err != nil {
 		return err
 	}
+	fmt.Printf("Waiting for components to be ready for %s", name)
 	return r.waitForReady(ctx, namespace)
 }
 
@@ -128,20 +129,55 @@ func kubectlCommand(ctx context.Context, m method, name, namespace, manifest str
 	return c.Run()
 }
 
-func (r *App) waitForReady(ctx context.Context, namespace string) error {
+func (r *App) Workloads(ctx context.Context, namespace string) ([]corev1.ObjectReference, error) {
 	resp, err := http.Get(r.App.Repository.URL)
 	if err != nil {
-		return errors.Wrap(err, "Failed to read resource manifest from URL")
+		return nil, errors.Wrap(err, "Failed to read resource manifest from URL")
 	}
 	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errors.Wrap(err, "Failed to read resource manifest from URL")
+		return nil, errors.Wrap(err, "Failed to read resource manifest from URL")
 	}
+	return ParseManifestYAML(string(data), namespace)
+}
 
+func (r *App) waitForReady(ctx context.Context, namespace string) error {
+	workloads, err := r.Workloads(ctx, namespace)
+	if err != nil {
+		return err
+	}
+	for _, wRef := range workloads {
+		switch wRef.Kind {
+		case "Pod":
+			if err := kube.WaitForPodReady(ctx, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Pod not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
+			}
+
+		case "Deployment":
+			if err := kube.WaitForDeploymentReady(ctx, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Deployment not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
+			}
+
+		case "StatefulSet":
+			if err := kube.WaitForStatefulSetReady(ctx, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+				return errors.Wrap(err, fmt.Sprintf("StatefulSet not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
+			}
+
+		case "DeploymentConfig":
+			if err := kube.WaitForDeploymentConfigReady(ctx, r.OSAppCli, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+				return errors.Wrap(err, fmt.Sprintf("DeploymentConfig not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
+			}
+		}
+	}
+	return nil
+}
+
+func ParseManifestYAML(manifest, namespace string) ([]corev1.ObjectReference, error) {
 	decode := scheme.Codecs.UniversalDeserializer().Decode
-	for _, spec := range yamlDelimiter.Split(string(data), -1) {
+	objRefs := []corev1.ObjectReference{}
+	for _, spec := range yamlDelimiter.Split(manifest, -1) {
 		if len(spec) == 0 {
 			continue
 		}
@@ -154,42 +190,35 @@ func (r *App) waitForReady(ctx context.Context, namespace string) error {
 		if namespace == "" {
 			namespace = "default"
 		}
+
 		switch w := obj.(type) {
 		case *corev1.Pod:
 			if w.GetNamespace() != "" {
 				namespace = w.GetNamespace()
 			}
-			if err := kube.WaitForPodReady(ctx, r.KubeCli, namespace, w.GetName()); err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Pod not in ready state. Namespace: %s, Name: %s", namespace, w.GetName()))
-			}
+			objRefs = append(objRefs, corev1.ObjectReference{Name: w.GetName(), Namespace: namespace, Kind: "Pod"})
 
 		case *appsv1.Deployment:
 			if w.GetNamespace() != "" {
 				namespace = w.GetNamespace()
 			}
-			if err := kube.WaitForDeploymentReady(ctx, r.KubeCli, namespace, w.GetName()); err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Deployment not in ready state. Namespace: %s, Name: %s", namespace, w.GetName()))
-			}
+			objRefs = append(objRefs, corev1.ObjectReference{Name: w.GetName(), Namespace: namespace, Kind: "Deployment"})
 
 		case *appsv1.StatefulSet:
 			if w.GetNamespace() != "" {
 				namespace = w.GetNamespace()
 			}
-			if err := kube.WaitForStatefulSetReady(ctx, r.KubeCli, namespace, w.GetName()); err != nil {
-				return errors.Wrap(err, fmt.Sprintf("StatefulSet not in ready state. Namespace: %s, Name: %s", namespace, w.GetName()))
-			}
+			objRefs = append(objRefs, corev1.ObjectReference{Name: w.GetName(), Namespace: namespace, Kind: "StatefulSet"})
 
 		case *osappsv1.DeploymentConfig:
 			if w.GetNamespace() != "" {
 				namespace = w.GetNamespace()
 			}
-			if err := kube.WaitForDeploymentConfigReady(ctx, r.OSAppCli, r.KubeCli, namespace, w.GetName()); err != nil {
-				return errors.Wrap(err, fmt.Sprintf("DeploymentConfig not in ready state. Namespace: %s, Name: %s", namespace, w.GetName()))
-			}
+			objRefs = append(objRefs, corev1.ObjectReference{Name: w.GetName(), Namespace: namespace, Kind: "DeploymentConfig"})
 		}
-	}
-	return nil
 
+	}
+	return objRefs, nil
 }
 
 func printList(app config.App) string {

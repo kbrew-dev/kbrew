@@ -16,13 +16,16 @@ require (
 	github.com/openshift/api v0.0.0-20200526144822-34f54f12813a
 	github.com/openshift/client-go v0.0.0-20200521150516-05eb9880269c
 	github.com/pkg/errors v0.9.1
+	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.1.3
+	github.com/spf13/viper v1.7.1
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.5.4
 	k8s.io/api v0.20.4
+	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v0.20.4
 	sigs.k8s.io/yaml v1.2.0
 )

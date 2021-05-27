@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/kbrew-dev/kbrew/pkg/apps"
 	"github.com/kbrew-dev/kbrew/pkg/config"
@@ -99,6 +100,14 @@ var (
 			return reg.Update()
 		},
 	}
+
+	analyticsCmd = &cobra.Command{
+		Use:   "analytics [on|off|status]",
+		Short: "Manage analytics setting",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return manageAnalytics(args)
+		},
+	}
 )
 
 func init() {
@@ -112,6 +121,7 @@ func init() {
 	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(analyticsCmd)
 
 	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
 }
@@ -155,6 +165,29 @@ func manageApp(m apps.Method, args []string) error {
 		if err := apps.Run(ctxTimeout, m, strings.ToLower(a), namespace, configFile); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func manageAnalytics(args []string) error {
+	if len(args) == 0 {
+		return errors.New("Missing subcommand")
+	}
+	switch args[0] {
+	case "on":
+		viper.Set(config.AnalyticsEnabled, true)
+		return viper.WriteConfig()
+	case "off":
+		viper.Set(config.AnalyticsEnabled, false)
+		return viper.WriteConfig()
+	case "status":
+		kc, err := config.NewKbrew()
+		if err != nil {
+			return err
+		}
+		fmt.Println("Analytics enabled:", kc.AnalyticsEnabled)
+	default:
+		return errors.New("Invalid subcommand")
 	}
 	return nil
 }
