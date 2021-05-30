@@ -190,7 +190,7 @@ func init() {
 	var err error
 	k8sVersion, err = getK8sVersion()
 	if err != nil {
-		fmt.Printf("ERROR: Failed to get K8s version. %s", err.Error)
+		fmt.Printf("ERROR: Failed to get K8s version. %s", err.Error())
 	}
 }
 
