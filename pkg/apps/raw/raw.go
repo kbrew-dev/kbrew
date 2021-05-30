@@ -129,6 +129,7 @@ func kubectlCommand(ctx context.Context, m method, name, namespace, manifest str
 	return c.Run()
 }
 
+// Workloads returns K8s workload object reference list for the raw app
 func (r *App) Workloads(ctx context.Context, namespace string) ([]corev1.ObjectReference, error) {
 	resp, err := http.Get(r.App.Repository.URL)
 	if err != nil {
@@ -174,6 +175,7 @@ func (r *App) waitForReady(ctx context.Context, namespace string) error {
 	return nil
 }
 
+// ParseManifestYAML splits yaml manifests with multiple K8s object specs and returns list of workload object references
 func ParseManifestYAML(manifest, namespace string) ([]corev1.ObjectReference, error) {
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	objRefs := []corev1.ObjectReference{}

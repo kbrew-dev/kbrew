@@ -28,10 +28,14 @@ const (
 	RegistriesDirName = "registries"
 
 	// Analytics setting flags
-	AnalyticsUUID    = "analyticsUUID"
+
+	// AnalyticsUUID represents unique ID used as customer ID
+	AnalyticsUUID = "analyticsUUID"
+	// AnalyticsEnabled to toggle GA event collection
 	AnalyticsEnabled = "analyticsEnabled"
 )
 
+// KbrewConfig is a kbrew config stored at CONFIG_DIR/config.yaml
 type KbrewConfig struct {
 	AnalyticsUUID    string `yaml:"analyticsUUID"`
 	AnalyticsEnabled bool   `yaml:"analyticsEnabled"`
@@ -76,7 +80,7 @@ type PostInstall struct {
 	Steps []string
 }
 
-// New parses kbrew recipe configuration and returns AppConfig instance
+// NewApp parses kbrew recipe configuration and returns AppConfig instance
 func NewApp(name, path string) (*AppConfig, error) {
 	c := &AppConfig{}
 	configFile, err := os.Open(path)
@@ -97,6 +101,7 @@ func NewApp(name, path string) (*AppConfig, error) {
 	return c, nil
 }
 
+// NewKbrew parses Kbrew config and returns KbrewConfig struct object
 func NewKbrew() (*KbrewConfig, error) {
 	kc := &KbrewConfig{}
 	err := viper.Unmarshal(kc)

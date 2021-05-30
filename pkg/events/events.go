@@ -19,30 +19,36 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/version"
 )
 
+// EventCatagory is the Google Analytics Event catagory
 type EventCatagory string
 
 const (
-	KbrewTrackingID = "UA-195717361-1"
-	GACollectURL    = "https://www.google-analytics.com/collect"
-	HTTPTimeout     = 5 * time.Second
+	kbrewTrackingID = "UA-195717361-1"
+	gaCollectURL    = "https://www.google-analytics.com/collect"
+	httpTimeout     = 5 * time.Second
 )
 
 var (
-	K8sVersion string
+	k8sVersion string
 
+	// ECInstallSuccess represents install success event catagory
 	ECInstallSuccess EventCatagory = "install-success"
-	ECInstallFail    EventCatagory = "install-fail"
+	// ECInstallFail represents install failure event catagory
+	ECInstallFail EventCatagory = "install-fail"
+	// ECInstallTimeout represents install timeout event catagory
 	ECInstallTimeout EventCatagory = "install-timeout"
-	ECK8sEvent       EventCatagory = "k8s-event"
+	// ECK8sEvent represents k8s events event catagory
+	ECK8sEvent EventCatagory = "k8s-event"
 )
 
-type K8sEvent struct {
+type k8sEvent struct {
 	Reason  string
 	Message string
 	Object  string
 	Action  string
 }
 
+// KbrewEvent contains information to report Event to Google Analytics
 type KbrewEvent struct {
 	gaVersion    string
 	gaType       string
@@ -57,26 +63,29 @@ type KbrewEvent struct {
 	gaKbrewArgs  string
 }
 
+// String returns string representation of Event Catagory
 func (ec EventCatagory) String() string {
 	return string(ec)
 }
 
+// NewKbrewEvent return new KbrewEvent
 func NewKbrewEvent(appConfig *config.AppConfig) *KbrewEvent {
 	return &KbrewEvent{
 		gaVersion:    "1",
 		gaType:       "event",
-		gaTID:        KbrewTrackingID,
+		gaTID:        kbrewTrackingID,
 		gaCID:        viper.GetString(config.AnalyticsUUID),
 		gaAIP:        "1",
 		gaAppName:    "kbrew",
 		gaAppVersion: version.Short(),
-		gaEvLabel:    fmt.Sprintf("k8s %s", K8sVersion),
+		gaEvLabel:    fmt.Sprintf("k8s %s", k8sVersion),
 		gaEvAction:   appConfig.App.Name,
 		gaKbrewArgs:  labels.FormatLabels(argsToLabels(appConfig.App.Args)),
 	}
 }
 
-func (kv *KbrewEvent) Report(ctx context.Context, ec EventCatagory, err error, k8sEvent *K8sEvent) error {
+// Report sends event to Google Analytics
+func (kv *KbrewEvent) Report(ctx context.Context, ec EventCatagory, err error, k8sEvent *k8sEvent) error {
 	v := url.Values{
 		"v":   {kv.gaVersion},
 		"tid": {kv.gaTID},
@@ -113,13 +122,13 @@ func (kv *KbrewEvent) Report(ctx context.Context, ec EventCatagory, err error, k
 	}
 
 	buf := bytes.NewBufferString(v.Encode())
-	req, err1 := http.NewRequest("POST", GACollectURL, buf)
+	req, err1 := http.NewRequest("POST", gaCollectURL, buf)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("User-Agent", fmt.Sprintf("kbrew/%s", version.Short()))
 	if err1 != nil {
 		return err1
 	}
-	ctx, cancel := context.WithTimeout(ctx, HTTPTimeout)
+	ctx, cancel := context.WithTimeout(ctx, httpTimeout)
 	defer cancel()
 
 	req = req.WithContext(ctx)
@@ -136,6 +145,7 @@ func (kv *KbrewEvent) Report(ctx context.Context, ec EventCatagory, err error, k
 	return err1
 }
 
+// ReportK8sEvents sends kbrew events with K8s events to Google Analytics
 func (kv *KbrewEvent) ReportK8sEvents(ctx context.Context, err error, workloads []corev1.ObjectReference) error {
 	k8sEvents, err1 := getPodEvents(ctx, workloads)
 	if err1 != nil {
@@ -150,12 +160,12 @@ func (kv *KbrewEvent) ReportK8sEvents(ctx context.Context, err error, workloads 
 	return nil
 }
 
-func getPodEvents(ctx context.Context, workloads []corev1.ObjectReference) ([]K8sEvent, error) {
+func getPodEvents(ctx context.Context, workloads []corev1.ObjectReference) ([]k8sEvent, error) {
 	notRunningPods, err := kube.FetchNonRunningPods(ctx, workloads)
 	if err != nil {
 		return nil, err
 	}
-	events := []K8sEvent{}
+	events := []k8sEvent{}
 	for _, pod := range notRunningPods {
 		ks8Events, err := getK8sEvents(ctx, corev1.ObjectReference{Name: pod.GetName(), Namespace: pod.GetNamespace(), UID: pod.GetUID(), Kind: "Pod"})
 		if err != nil {
@@ -178,13 +188,13 @@ func prepareObjectSelector(objReference corev1.ObjectReference) string {
 
 func init() {
 	var err error
-	K8sVersion, err = getK8sVersion()
+	k8sVersion, err = getK8sVersion()
 	if err != nil {
 		fmt.Printf("ERROR: Failed to get K8s version. %s", err.Error)
 	}
 }
 
-func getK8sEvents(ctx context.Context, objReference corev1.ObjectReference) ([]K8sEvent, error) {
+func getK8sEvents(ctx context.Context, objReference corev1.ObjectReference) ([]k8sEvent, error) {
 	clis, err := kube.NewClient()
 	if err != nil {
 		return nil, err
@@ -194,14 +204,14 @@ func getK8sEvents(ctx context.Context, objReference corev1.ObjectReference) ([]K
 	if err != nil {
 		return nil, err
 	}
-	retEventList := []K8sEvent{}
+	retEventList := []k8sEvent{}
 	for _, event := range eventList.Items {
 		objRef := corev1.ObjectReference{
 			Name:      event.InvolvedObject.Name,
 			Namespace: event.InvolvedObject.Namespace,
 			Kind:      event.InvolvedObject.Kind,
 		}
-		retEventList = append(retEventList, K8sEvent{
+		retEventList = append(retEventList, k8sEvent{
 			Reason:  event.Reason,
 			Message: event.Message,
 			Object:  objRef.String(),

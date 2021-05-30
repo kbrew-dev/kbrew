@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+// Client contains Kubernetes clients to call APIs
 type Client struct {
 	KubeCli      kubernetes.Interface
 	OSCli        osversioned.Interface
@@ -43,6 +44,7 @@ func WaitForDeploymentConfigReady(ctx context.Context, osCli osversioned.Interfa
 	return kube.WaitOnDeploymentConfigReady(ctx, osCli, kubeCli, namespace, name)
 }
 
+// FetchNonRunningPods returns list of non running Pods owned by the workloads
 func FetchNonRunningPods(ctx context.Context, workloads []corev1.ObjectReference) ([]corev1.Pod, error) {
 	clis, err := NewClient()
 	if err != nil {
@@ -99,6 +101,7 @@ func newConfig() (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", kubeconfig)
 }
 
+// NewClient initializes and returns client object
 func NewClient() (*Client, error) {
 	kubeConfig, err := newConfig()
 	if err != nil {

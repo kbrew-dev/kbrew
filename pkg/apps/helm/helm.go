@@ -129,6 +129,7 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	return string(out), err
 }
 
+// Workloads returns K8s workload object reference list for the helm app
 func (ha *App) Workloads(ctx context.Context, namespace string) ([]corev1.ObjectReference, error) {
 	manifest, err := ha.getManifests(ctx, namespace)
 	if err != nil {
