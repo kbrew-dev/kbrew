@@ -34,9 +34,8 @@ var (
 		Use:   "version",
 		Short: "Print version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
-			fmt.Println(version.Long(ctx))
-			release, err := update.IsAvailable(ctx)
+			fmt.Println(version.Long())
+			release, err := update.IsAvailable(context.Background())
 			if err != nil {
 				fmt.Printf("Error getting latest version of kbrew from GiThub: %s", err)
 			}

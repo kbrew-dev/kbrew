@@ -1,7 +1,6 @@
 package version
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -18,7 +17,7 @@ var BuildDate = "unknown"
 const versionLongFmt = `{"Version": "%s", "GitCommit": "%s", "BuildDate": "%s"}`
 
 // Long long version of the release
-func Long(ctx context.Context) string {
+func Long() string {
 	return fmt.Sprintf(versionLongFmt, Version, GitCommitID, BuildDate)
 }
 
