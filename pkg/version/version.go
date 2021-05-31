@@ -1,8 +1,6 @@
 package version
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Version The below variables are overridden using the build process
 // name of the release
