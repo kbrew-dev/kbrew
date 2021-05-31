@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -108,6 +109,25 @@ var (
 			return manageAnalytics(args)
 		},
 	}
+
+	completionCmd = &cobra.Command{
+		Use:       "completion [SHELL]",
+		Short:     "Output shell completion code for the specified shell (bash or zsh)",
+		ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
+		Args:      cobra.ExactValidArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			switch args[0] {
+			case "bash":
+				cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			}
+		},
+	}
 )
 
 func init() {
@@ -122,6 +142,7 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(analyticsCmd)
+	rootCmd.AddCommand(completionCmd)
 
 	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
 }
