@@ -25,18 +25,29 @@ func getBinDir() (string, error) {
 	return filepath.Dir(path), nil
 }
 
+// IsAvailable checks if a new version of GitHub release available
+func IsAvailable(ctx context.Context) (string, error) {
+	release, err := util.GetLatestVersion(ctx)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to check for kbrew updates")
+	}
+	if version.Version != *release.TagName {
+		return *release.TagName, nil
+	}
+	return "", nil
+}
+
 // CheckRelease checks for the latest release
 func CheckRelease(ctx context.Context) error {
-	release, err := util.GetLatestVersion(ctx)
+	release, err := IsAvailable(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to check for kbrew updates")
 	}
-	// Send notification if newer version available
-	if version.Version != *release.TagName {
-		fmt.Printf("kbrew %s is available, upgrading...\n", *release.TagName)
-		return upgradeKbrew(ctx)
+	if release == "" {
+		return nil
 	}
-	return nil
+	fmt.Printf("kbrew %s is available, upgrading...\n", release)
+	return upgradeKbrew(ctx)
 }
 
 func upgradeKbrew(ctx context.Context) error {
