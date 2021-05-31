@@ -24,10 +24,10 @@ const versionLongFmt = `{"Version": "%s", "GitCommit": "%s", "BuildDate": "%s"}`
 func Long(ctx context.Context) string {
 	release, err := util.GetLatestVersion(ctx)
 	if err != nil {
-		fmt.Printf("Error gettning latest version of kbrew from Github: %s", err)
+		fmt.Printf("Error getting latest version of kbrew from Github: %s", err)
 	} else {
 		if version.Version != *release.TagName {
-			fmt.Printf("There is a new version of kbrew available: %s, please run kbrew update command to update", *release.TagName)
+			fmt.Printf("There is a new version of kbrew available: %s, please run 'kbrew update' command to upgrade\n", *release.TagName)
 
 		}
 	}

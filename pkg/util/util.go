@@ -12,6 +12,7 @@ const (
 	releaseRepoName  = "kbrew-release"
 )
 
+// GetLatestVersion returns latest published release version on GitHub
 func GetLatestVersion(ctx context.Context) (*github.RepositoryRelease, error) {
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, releaseRepoOwner, releaseRepoName)
