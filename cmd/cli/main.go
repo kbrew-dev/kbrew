@@ -112,7 +112,7 @@ var (
 
 	completionCmd = &cobra.Command{
 		Use:       "completion [SHELL]",
-		Short:     "Output shell completion code for the specified shell (bash or zsh)",
+		Short:     "Output shell completion code for the specified shell",
 		ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
 		Args:      cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
