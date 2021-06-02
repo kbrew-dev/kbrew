@@ -1,5 +1,29 @@
 # Changelog
 
+## [v0.0.5](https://github.com/kbrew-dev/kbrew/tree/v0.0.5) (2021-06-02)
+
+[Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.4...v0.0.5)
+
+**Closed issues:**
+
+- Add a flag to set custom wait for ready timeout [\#75](https://github.com/kbrew-dev/kbrew/issues/75)
+- Collect events for analytics [\#65](https://github.com/kbrew-dev/kbrew/issues/65)
+- Support for helm functions in recipe yaml [\#64](https://github.com/kbrew-dev/kbrew/issues/64)
+- Add support for passing args to the kbrew app [\#63](https://github.com/kbrew-dev/kbrew/issues/63)
+- Add support for kbrew help command [\#57](https://github.com/kbrew-dev/kbrew/issues/57)
+
+**Merged pull requests:**
+
+- Support helm functions on raw app args [\#81](https://github.com/kbrew-dev/kbrew/pull/81) ([PrasadG193](https://github.com/PrasadG193))
+- Add autocomplete support for kbrew CLI [\#78](https://github.com/kbrew-dev/kbrew/pull/78) ([sanketsudake](https://github.com/sanketsudake))
+- Collect events for analytics [\#77](https://github.com/kbrew-dev/kbrew/pull/77) ([PrasadG193](https://github.com/PrasadG193))
+- Support custom wait-for-ready timeout [\#76](https://github.com/kbrew-dev/kbrew/pull/76) ([PrasadG193](https://github.com/PrasadG193))
+- \[CI\] Fix go vet failures [\#72](https://github.com/kbrew-dev/kbrew/pull/72) ([PrasadG193](https://github.com/PrasadG193))
+- Support for raw app args [\#71](https://github.com/kbrew-dev/kbrew/pull/71) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- change args value to empty interface [\#70](https://github.com/kbrew-dev/kbrew/pull/70) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- yaml evaluator [\#69](https://github.com/kbrew-dev/kbrew/pull/69) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- Enhanced version command to check for latest version and warn user [\#68](https://github.com/kbrew-dev/kbrew/pull/68) ([vishal-biyani](https://github.com/vishal-biyani))
+
 ## [v0.0.4](https://github.com/kbrew-dev/kbrew/tree/v0.0.4) (2021-05-13)
 
 [Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.3...v0.0.4)
