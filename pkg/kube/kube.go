@@ -17,6 +17,8 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+var k8sVersion string
+
 // Client contains Kubernetes clients to call APIs
 type Client struct {
 	KubeCli      kubernetes.Interface
@@ -124,4 +126,22 @@ func NewClient() (*Client, error) {
 		DiscoveryCli: disClient,
 		OSCli:        osCli,
 	}, nil
+}
+
+// GetK8sVersion returns Kubernetes server version
+func GetK8sVersion() (string, error) {
+	if k8sVersion != "" {
+		return k8sVersion, nil
+	}
+	clis, err := NewClient()
+	if err != nil {
+		return "", err
+	}
+	versionInfo, err := clis.DiscoveryCli.ServerVersion()
+	if err != nil {
+		return "", err
+	}
+	// Store the version in a global var to avoid repeatitive API calls
+	k8sVersion = versionInfo.String()
+	return k8sVersion, nil
 }

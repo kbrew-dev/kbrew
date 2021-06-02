@@ -9,7 +9,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/go-git/go-git/v5 v5.2.0
 	github.com/google/go-cmp v0.5.4
-	github.com/google/go-github/v27 v27.0.6
+	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/kanisterio/kanister v0.0.0-20210224062123-08e898f3dbf3
 	github.com/mikefarah/yq/v4 v4.9.0
 	github.com/mitchellh/go-homedir v1.1.0

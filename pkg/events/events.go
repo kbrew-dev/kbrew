@@ -29,8 +29,6 @@ const (
 )
 
 var (
-	k8sVersion string
-
 	// ECInstallSuccess represents install success event catagory
 	ECInstallSuccess EventCatagory = "install-success"
 	// ECInstallFail represents install failure event catagory
@@ -70,6 +68,11 @@ func (ec EventCatagory) String() string {
 
 // NewKbrewEvent return new KbrewEvent
 func NewKbrewEvent(appConfig *config.AppConfig) *KbrewEvent {
+	k8sVersion, err := kube.GetK8sVersion()
+	if err != nil {
+		fmt.Printf("ERROR: Failed to fetch K8s version, %s\n", err.Error())
+		k8sVersion = "NA"
+	}
 	return &KbrewEvent{
 		gaVersion:    "1",
 		gaType:       "event",
@@ -186,14 +189,6 @@ func prepareObjectSelector(objReference corev1.ObjectReference) string {
 	}.String()
 }
 
-func init() {
-	var err error
-	k8sVersion, err = getK8sVersion()
-	if err != nil {
-		fmt.Printf("ERROR: Failed to get K8s version. %s", err.Error())
-	}
-}
-
 func getK8sEvents(ctx context.Context, objReference corev1.ObjectReference) ([]k8sEvent, error) {
 	clis, err := kube.NewClient()
 	if err != nil {
@@ -219,18 +214,6 @@ func getK8sEvents(ctx context.Context, objReference corev1.ObjectReference) ([]k
 		})
 	}
 	return retEventList, nil
-}
-
-func getK8sVersion() (string, error) {
-	clis, err := kube.NewClient()
-	if err != nil {
-		return "", err
-	}
-	versionInfo, err := clis.DiscoveryCli.ServerVersion()
-	if err != nil {
-		return "", err
-	}
-	return versionInfo.String(), nil
 }
 
 func argsToLabels(args map[string]interface{}) map[string]string {
