@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"os"
 	"os/exec"
@@ -18,9 +17,9 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-
 	// Load all auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
@@ -120,8 +119,15 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 		return err
 	}
 
-	if err := r.createNameSpaceIfNotExists(); err != nil {
+	// Get Namespace by name.
+	err = kube.GetNamespace(ctx, r.KubeCli, r.App.Namespace)
+	if err != nil && !k8sErrors.IsNotFound(err) {
 		return err
+	}
+	if k8sErrors.IsNotFound(err) {
+		if err := kube.CreateNamespace(ctx, r.KubeCli, r.App.Namespace); err != nil {
+			return err
+		}
 	}
 
 	// TODO(@prasad): Use go sdks
@@ -130,26 +136,6 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 	}
 	fmt.Printf("Waiting for components to be ready for %s\n", name)
 	return r.waitForReady(ctx, namespace)
-}
-
-func (r *App) createNameSpaceIfNotExists() error {
-	// Get Namespace by name.
-	_, err := r.KubeCli.CoreV1().Namespaces().Get(context.Background(), r.App.Namespace, metav1.GetOptions{})
-	if err != nil {
-		// Check if Namespace exists.
-		if strings.Compare(err.Error(), "namespaces \""+r.App.Namespace+"\" not found") == 0 {
-			nsName := &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: r.App.Namespace,
-				},
-			}
-			// Create if Namespace doesn't exist.
-			_, err = r.KubeCli.CoreV1().Namespaces().Create(context.Background(), nsName, metav1.CreateOptions{})
-			return err
-		}
-		return err
-	}
-	return nil
 }
 
 // Uninstall uninstalls the app specified by name and namespace.
