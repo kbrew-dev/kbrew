@@ -52,12 +52,6 @@ func CreateNamespace(ctx context.Context, kubeCli kubernetes.Interface, namespac
 	return err
 }
 
-// GetNamespace retrieves namespace
-func GetNamespace(ctx context.Context, kubeCli kubernetes.Interface, namespace string) error {
-	_, err := kubeCli.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
-	return err
-}
-
 // WaitForDeploymentConfigReady waits till the deployment config gets ready
 func WaitForDeploymentConfigReady(ctx context.Context, osCli osversioned.Interface, kubeCli kubernetes.Interface, namespace string, name string) error {
 	return kube.WaitOnDeploymentConfigReady(ctx, osCli, kubeCli, namespace, name)

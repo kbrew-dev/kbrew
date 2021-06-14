@@ -119,15 +119,8 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 		return err
 	}
 
-	// Get Namespace by name.
-	err = kube.GetNamespace(ctx, r.KubeCli, r.App.Namespace)
-	if err != nil && !k8sErrors.IsNotFound(err) {
+	if err := kube.CreateNamespace(ctx, r.KubeCli, r.App.Namespace); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return err
-	}
-	if k8sErrors.IsNotFound(err) {
-		if err := kube.CreateNamespace(ctx, r.KubeCli, r.App.Namespace); err != nil {
-			return err
-		}
 	}
 
 	// TODO(@prasad): Use go sdks
