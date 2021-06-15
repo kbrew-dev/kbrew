@@ -19,6 +19,7 @@ type method string
 
 const (
 	installMethod     method = "install"
+	statusMethod      method = "status"
 	uninstallMethod   method = "delete"
 	getManifestMethod method = "get manifest"
 )
@@ -47,6 +48,12 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	}
 	if err := ha.resolveArgs(); err != nil {
 		return err
+	}
+	_, err := helmCommand(ctx, statusMethod, name, "", namespace, "", nil)
+	if err == nil {
+		// helm release already exists, return from here
+		fmt.Printf("helm app %s/%s already exists. Skipping...\n", ha.App.Repository.Name, name)
+		return nil
 	}
 
 	out, err := helmCommand(ctx, installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
