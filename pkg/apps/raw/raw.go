@@ -17,9 +17,9 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-
 	// Load all auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
@@ -116,6 +116,10 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 
 	patchedManifest, err := patchManifest(manifest, r.App.Args)
 	if err != nil {
+		return err
+	}
+
+	if err := kube.CreateNamespace(ctx, r.KubeCli, r.App.Namespace); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return err
 	}
 

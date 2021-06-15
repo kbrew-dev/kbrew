@@ -41,6 +41,17 @@ func WaitForStatefulSetReady(ctx context.Context, kubeCli kubernetes.Interface, 
 	return kube.WaitOnStatefulSetReady(ctx, kubeCli, namespace, name)
 }
 
+// CreateNamespace creates namespace
+func CreateNamespace(ctx context.Context, kubeCli kubernetes.Interface, namespace string) error {
+	nsName := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+		},
+	}
+	_, err := kubeCli.CoreV1().Namespaces().Create(ctx, nsName, metav1.CreateOptions{})
+	return err
+}
+
 // WaitForDeploymentConfigReady waits till the deployment config gets ready
 func WaitForDeploymentConfigReady(ctx context.Context, osCli osversioned.Interface, kubeCli kubernetes.Interface, namespace string, name string) error {
 	return kube.WaitOnDeploymentConfigReady(ctx, osCli, kubeCli, namespace, name)
