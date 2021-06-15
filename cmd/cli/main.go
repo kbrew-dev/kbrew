@@ -159,8 +159,11 @@ func main() {
 }
 
 // Execute executes the main command
-func Execute() error {
-	return rootCmd.Execute()
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
 func checkArgs(args []string) error {
