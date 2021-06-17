@@ -59,6 +59,7 @@ type App struct {
 	Version     string                 `yaml:"version,omitempty"`
 	PreInstall  []PreInstall           `yaml:"pre_install,omitempty"`
 	PostInstall []PostInstall          `yaml:"post_install,omitempty"`
+	Cleanup     AppCleanup             `yaml:"cleanup"`
 }
 
 // Repository is the repo for kbrew app
@@ -78,6 +79,11 @@ type PreInstall struct {
 type PostInstall struct {
 	Apps  []string `yaml:"apps,omitempty"`
 	Steps []string `yaml:"steps,omitempty"`
+}
+
+// AppCleanup contains steps to be executed before uninstalling applications
+type AppCleanup struct {
+	Steps []string
 }
 
 // NewApp parses kbrew recipe configuration and returns AppConfig instance
