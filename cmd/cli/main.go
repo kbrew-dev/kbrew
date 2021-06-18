@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 
 	"github.com/kbrew-dev/kbrew/pkg/apps"
 	"github.com/kbrew-dev/kbrew/pkg/config"
@@ -137,6 +138,53 @@ var (
 			}
 		},
 	}
+
+	infoCmd = &cobra.Command{
+		Use:   "info [NAME]",
+		Short: "Describe application",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			reg, err := registry.New(config.ConfigDir)
+			if err != nil {
+				return err
+			}
+			s, err := reg.Info(args[0])
+			if err != nil {
+				fmt.Println(err)
+				return nil
+			}
+			fmt.Println(s)
+			return nil
+		},
+	}
+
+	argsCmd = &cobra.Command{
+		Use:   "args [NAME]",
+		Short: "Get arguments for an application",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			reg, err := registry.New(config.ConfigDir)
+			if err != nil {
+				return err
+			}
+			appArgs, err := reg.Args(args[0])
+			if err != nil {
+				fmt.Println(err)
+				return nil
+			}
+			if len(appArgs) == 0 {
+				fmt.Println("This recipe has no arguments declared")
+				return nil
+			}
+
+			bytes, err := yaml.Marshal(appArgs)
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(bytes))
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -152,8 +200,10 @@ func init() {
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(analyticsCmd)
 	rootCmd.AddCommand(completionCmd)
+	rootCmd.AddCommand(infoCmd)
 
 	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
+	infoCmd.AddCommand(argsCmd)
 }
 
 func main() {

@@ -11,6 +11,9 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+
+	"github.com/kbrew-dev/kbrew/pkg/config"
 )
 
 const (
@@ -175,6 +178,35 @@ func (kr *KbrewRegistry) Update() error {
 	return nil
 }
 
+func (kr *KbrewRegistry) Info(appName string) (string, error) {
+	c, err := kr.FetchRecipe(appName)
+	if err != nil {
+		return "", err
+	}
+	a, err := config.NewApp(appName, c)
+	if err != nil {
+		return "", err
+	}
+	bytes, err := yaml.Marshal(buildAppInfo(a.App))
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func (kr *KbrewRegistry) Args(appName string) (map[string]interface{}, error) {
+	c, err := kr.FetchRecipe(appName)
+	if err != nil {
+		return nil, err
+	}
+	a, err := config.NewApp(appName, c)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.App.Args, nil
+}
+
 func fetchUpdates(rootDir, repo string) error {
 	gitRegistry, err := git.PlainOpen(filepath.Join(rootDir, repo))
 	if err != nil {
@@ -198,4 +230,34 @@ func fetchUpdates(rootDir, repo string) error {
 	}
 	fmt.Printf("Registry %s head is set to %s\n", repo, head)
 	return nil
+}
+
+func buildAppInfo(a config.App) config.App {
+	app := config.App{
+		Version: a.Version,
+		Repository: config.Repository{
+			Name: a.Repository.Name,
+			Type: a.Repository.Type,
+			URL:  a.Repository.URL,
+		},
+	}
+	preinstalls := []config.PreInstall{}
+	for _, p := range a.PreInstall {
+		if len(p.Apps) != 0 {
+			preinstalls = append(preinstalls, config.PreInstall{
+				Apps: p.Apps,
+			})
+		}
+	}
+	app.PreInstall = preinstalls
+	postinstalls := []config.PostInstall{}
+	for _, p := range a.PostInstall {
+		if len(p.Apps) != 0 {
+			postinstalls = append(postinstalls, config.PostInstall{
+				Apps: p.Apps,
+			})
+		}
+	}
+	app.PostInstall = postinstalls
+	return app
 }
