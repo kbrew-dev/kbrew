@@ -178,6 +178,7 @@ func (kr *KbrewRegistry) Update() error {
 	return nil
 }
 
+// Info returns information about a recipe
 func (kr *KbrewRegistry) Info(appName string) (string, error) {
 	c, err := kr.FetchRecipe(appName)
 	if err != nil {
@@ -194,6 +195,7 @@ func (kr *KbrewRegistry) Info(appName string) (string, error) {
 	return string(bytes), nil
 }
 
+// Args returns the arguments declared for a recipe
 func (kr *KbrewRegistry) Args(appName string) (map[string]interface{}, error) {
 	c, err := kr.FetchRecipe(appName)
 	if err != nil {
