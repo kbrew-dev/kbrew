@@ -237,6 +237,7 @@ func fetchUpdates(rootDir, repo string) error {
 func buildAppInfo(a config.App) config.App {
 	app := config.App{
 		Version: a.Version,
+		Args:    a.Args,
 		Repository: config.Repository{
 			Name: a.Repository.Name,
 			Type: a.Repository.Type,
