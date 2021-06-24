@@ -43,6 +43,9 @@ func WaitForStatefulSetReady(ctx context.Context, kubeCli kubernetes.Interface, 
 
 // CreateNamespace creates namespace
 func CreateNamespace(ctx context.Context, kubeCli kubernetes.Interface, namespace string) error {
+	if namespace == "" {
+		return nil
+	}
 	nsName := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespace,
