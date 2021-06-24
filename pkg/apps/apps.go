@@ -118,7 +118,7 @@ func runInstall(ctx context.Context, app App, c *config.AppConfig, m Method, app
 	}
 	if viper.GetBool(config.AnalyticsEnabled) {
 		if err1 := event.Report(context.TODO(), events.ECInstallSuccess, nil, nil); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 	}
 	return nil
@@ -165,7 +165,7 @@ func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 
 	if viper.GetBool(config.AnalyticsEnabled) {
 		if err1 := event.Report(context.TODO(), events.ECInstallSuccess, nil, nil); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 	}
 	return nil
@@ -180,23 +180,23 @@ func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent
 	}
 	wkl, err1 := app.Workloads(context.TODO(), namespace)
 	if err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err.Error())
 	}
 
 	if ctx.Err() != nil && ctx.Err() == context.DeadlineExceeded {
 		if err1 := event.Report(context.TODO(), events.ECInstallTimeout, err, nil); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 		if err1 := event.ReportK8sEvents(context.TODO(), err, wkl); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 		return err
 	}
 	if err1 := event.Report(context.TODO(), events.ECInstallFail, err, nil); err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err1.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 	}
 	if err1 := event.ReportK8sEvents(context.TODO(), err, wkl); err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err1.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 	}
 	return err
 }
@@ -212,12 +212,12 @@ func handleUninstallError(ctx context.Context, err error, event *events.KbrewEve
 
 	if ctx.Err() != nil && ctx.Err() == context.DeadlineExceeded {
 		if err1 := event.Report(context.TODO(), events.ECUninstallTimeout, err, nil); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 		return err
 	}
 	if err1 := event.Report(context.TODO(), events.ECUninstallFail, err, nil); err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err1.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 	}
 	return err
 }
