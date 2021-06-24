@@ -73,16 +73,16 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 
 	switch m {
 	case Install:
-		return RunInstall(ctx, app, c, m, appName, namespace, appConfigPath)
+		return runInstall(ctx, app, c, m, appName, namespace, appConfigPath)
 	case Uninstall:
-		return RunUninstall(ctx, app, c, m, appName, namespace, appConfigPath)
+		return runUninstall(ctx, app, c, m, appName, namespace, appConfigPath)
 	default:
 		return errors.New(fmt.Sprintf("Unsupported method %s", m))
 	}
 	return nil
 }
 
-func RunInstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {
+func runInstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {
 	// Event report
 	event := events.NewKbrewEvent(c)
 
@@ -124,7 +124,7 @@ func RunInstall(ctx context.Context, app App, c *config.AppConfig, m Method, app
 	return nil
 }
 
-func RunUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {
+func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {
 	// Event report
 	event := events.NewKbrewEvent(c)
 
