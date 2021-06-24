@@ -90,29 +90,29 @@ func RunInstall(ctx context.Context, app App, c *config.AppConfig, m Method, app
 	for _, phase := range c.App.PreInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleInstallError(ctx, err, event, app, namespace)
 			}
 		}
 		for _, a := range phase.Steps {
 			if err := execCommand(a); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleInstallError(ctx, err, event, app, namespace)
 			}
 		}
 	}
 	// Run install
 	if err := app.Install(ctx, appName, namespace, c.App.Version, nil); err != nil {
-		return handleError(ctx, err, event, app, namespace)
+		return handleInstallError(ctx, err, event, app, namespace)
 	}
 	// Run postinstall
 	for _, phase := range c.App.PostInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleInstallError(ctx, err, event, app, namespace)
 			}
 		}
 		for _, a := range phase.Steps {
 			if err := execCommand(a); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleInstallError(ctx, err, event, app, namespace)
 			}
 		}
 	}
@@ -131,7 +131,7 @@ func RunUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 	// Execute cleanup steps
 	for _, a := range c.App.Cleanup.Steps {
 		if err := execCommand(a); err != nil {
-			return handleError(ctx, err, event, app, namespace)
+			return handleUninstallError(ctx, err, event, appName, namespace)
 		}
 	}
 
@@ -139,26 +139,26 @@ func RunUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 	for _, phase := range c.App.PostInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleUninstallError(ctx, err, event, appName, namespace)
 			}
 		}
 	}
 
 	// Run uninstall
 	if err := app.Uninstall(ctx, appName, namespace); err != nil {
-		return handleError(ctx, err, event, app, namespace)
+		return handleUninstallError(ctx, err, event, appName, namespace)
 	}
 
 	// Run preinstall
 	for _, phase := range c.App.PreInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleUninstallError(ctx, err, event, appName, namespace)
 			}
 		}
 		for _, a := range phase.Steps {
 			if err := execCommand(a); err != nil {
-				return handleError(ctx, err, event, app, namespace)
+				return handleUninstallError(ctx, err, event, appName, namespace)
 			}
 		}
 	}
@@ -171,7 +171,7 @@ func RunUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 	return nil
 }
 
-func handleError(ctx context.Context, err error, event *events.KbrewEvent, app App, namespace string) error {
+func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent, app App, namespace string) error {
 	if err == nil {
 		return nil
 	}
@@ -196,6 +196,27 @@ func handleError(ctx context.Context, err error, event *events.KbrewEvent, app A
 		fmt.Printf("Failed to report event. %s\n", err1.Error())
 	}
 	if err1 := event.ReportK8sEvents(context.TODO(), err, wkl); err1 != nil {
+		fmt.Printf("Failed to report event. %s\n", err1.Error())
+	}
+	return err
+}
+
+func handleUninstallError(ctx context.Context, err error, event *events.KbrewEvent, appName, namespace string) error {
+	if err == nil {
+		return nil
+	}
+	fmt.Printf("Warning: error encountered while uninstalling app - %s.\nYou need to cleanup few resources manually. App: %s, Namespace: %s\n", err, appName, namespace)
+	if !viper.GetBool(config.AnalyticsEnabled) {
+		return err
+	}
+
+	if ctx.Err() != nil && ctx.Err() == context.DeadlineExceeded {
+		if err1 := event.Report(context.TODO(), events.ECUninstallTimeout, err, nil); err1 != nil {
+			fmt.Printf("Failed to report event. %s\n", err1.Error())
+		}
+		return err
+	}
+	if err1 := event.Report(context.TODO(), events.ECUninstallFail, err, nil); err1 != nil {
 		fmt.Printf("Failed to report event. %s\n", err1.Error())
 	}
 	return err
