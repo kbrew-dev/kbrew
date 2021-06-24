@@ -119,7 +119,7 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 		return err
 	}
 
-	if err := kube.CreateNamespace(ctx, r.KubeCli, r.App.Namespace); err != nil && !k8sErrors.IsAlreadyExists(err) {
+	if err := kube.CreateNamespace(ctx, r.KubeCli, namespace); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return err
 	}
 
