@@ -26,9 +26,11 @@ var (
 	timeout    string
 
 	rootCmd = &cobra.Command{
-		Use:   "kbrew",
-		Short: "Homebrew for your Kubernetes applications",
-		Long:  `TODO: Long description`,
+		Use:           "kbrew",
+		Short:         "Homebrew for your Kubernetes applications",
+		Long:          `TODO: Long description`,
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	versionCmd = &cobra.Command{
