@@ -121,6 +121,7 @@ func runInstall(ctx context.Context, app App, c *config.AppConfig, m Method, app
 			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 	}
+	fmt.Printf("App %s installed successfully!\n", appName)
 	return nil
 }
 
@@ -149,25 +150,21 @@ func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 		return handleUninstallError(ctx, err, event, appName, namespace)
 	}
 
-	// Run preinstall
+	// Delete preinstall apps
 	for _, phase := range c.App.PreInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
 				return handleUninstallError(ctx, err, event, appName, namespace)
 			}
 		}
-		for _, a := range phase.Steps {
-			if err := execCommand(a); err != nil {
-				return handleUninstallError(ctx, err, event, appName, namespace)
-			}
-		}
 	}
 
 	if viper.GetBool(config.AnalyticsEnabled) {
-		if err1 := event.Report(context.TODO(), events.ECInstallSuccess, nil, nil); err1 != nil {
+		if err1 := event.Report(context.TODO(), events.ECUninstallSuccess, nil, nil); err1 != nil {
 			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 	}
+	fmt.Printf("App %s uninstalled successfully!\n", appName)
 	return nil
 }
 
