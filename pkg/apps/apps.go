@@ -90,29 +90,29 @@ func runInstall(ctx context.Context, app App, c *config.AppConfig, m Method, app
 	for _, phase := range c.App.PreInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return handleInstallError(ctx, err, event, app, namespace)
+				return handleInstallError(ctx, err, event, app, appName, namespace)
 			}
 		}
 		for _, a := range phase.Steps {
-			if err := execCommand(a); err != nil {
-				return handleInstallError(ctx, err, event, app, namespace)
+			if err := execCommand(ctx, a); err != nil {
+				return handleInstallError(ctx, err, event, app, appName, namespace)
 			}
 		}
 	}
 	// Run install
 	if err := app.Install(ctx, appName, namespace, c.App.Version, nil); err != nil {
-		return handleInstallError(ctx, err, event, app, namespace)
+		return handleInstallError(ctx, err, event, app, appName, namespace)
 	}
 	// Run postinstall
 	for _, phase := range c.App.PostInstall {
 		for _, a := range phase.Apps {
 			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-				return handleInstallError(ctx, err, event, app, namespace)
+				return handleInstallError(ctx, err, event, app, appName, namespace)
 			}
 		}
 		for _, a := range phase.Steps {
-			if err := execCommand(a); err != nil {
-				return handleInstallError(ctx, err, event, app, namespace)
+			if err := execCommand(ctx, a); err != nil {
+				return handleInstallError(ctx, err, event, app, appName, namespace)
 			}
 		}
 	}
@@ -129,9 +129,9 @@ func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 	// Event report
 	event := events.NewKbrewEvent(c)
 
-	// Execute cleanup steps
-	for _, a := range c.App.Cleanup.Steps {
-		if err := execCommand(a); err != nil {
+	// Execute precleanup steps
+	for _, a := range c.App.PreCleanup.Steps {
+		if err := execCommand(ctx, a); err != nil {
 			return handleUninstallError(ctx, err, event, appName, namespace)
 		}
 	}
@@ -159,6 +159,13 @@ func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 		}
 	}
 
+	// Execute postcleanup steps
+	for _, a := range c.App.PostCleanup.Steps {
+		if err := execCommand(ctx, a); err != nil {
+			return handleUninstallError(ctx, err, event, appName, namespace)
+		}
+	}
+
 	if viper.GetBool(config.AnalyticsEnabled) {
 		if err1 := event.Report(context.TODO(), events.ECUninstallSuccess, nil, nil); err1 != nil {
 			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
@@ -168,7 +175,7 @@ func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, a
 	return nil
 }
 
-func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent, app App, namespace string) error {
+func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent, app App, appName, namespace string) error {
 	if err == nil {
 		return nil
 	}
@@ -181,6 +188,7 @@ func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent
 	}
 
 	if ctx.Err() != nil && ctx.Err() == context.DeadlineExceeded {
+		fmt.Printf("ERROR: Timed out while installing %s app in %s namespace\n", appName, namespace)
 		if err1 := event.Report(context.TODO(), events.ECInstallTimeout, err, nil); err1 != nil {
 			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
@@ -219,8 +227,8 @@ func handleUninstallError(ctx context.Context, err error, event *events.KbrewEve
 	return err
 }
 
-func execCommand(cmd string) error {
-	c := exec.Command("sh", "-c", cmd)
+func execCommand(ctx context.Context, cmd string) error {
+	c := exec.CommandContext(ctx, "sh", "-c", cmd)
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Run()
