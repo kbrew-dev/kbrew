@@ -150,8 +150,7 @@ var (
 			}
 			s, err := reg.Info(args[0])
 			if err != nil {
-				fmt.Println(err)
-				return nil
+				return err
 			}
 			fmt.Println(s)
 			return nil
@@ -169,12 +168,7 @@ var (
 			}
 			appArgs, err := reg.Args(args[0])
 			if err != nil {
-				fmt.Println(err)
-				return nil
-			}
-			if len(appArgs) == 0 {
-				fmt.Println("This recipe has no arguments declared")
-				return nil
+				return err
 			}
 
 			bytes, err := yaml.Marshal(appArgs)
