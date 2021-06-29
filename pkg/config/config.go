@@ -50,15 +50,15 @@ type AppConfig struct {
 
 // App hold app details set in kbrew recipe
 type App struct {
-	Args        map[string]interface{} `yaml:"args"`
+	Args        map[string]interface{} `yaml:"args,omitempty"`
 	Repository  Repository             `yaml:"repository"`
-	Name        string                 `yaml:"name"`
-	Namespace   string                 `yaml:"namespace"`
-	URL         string                 `yaml:"url"`
-	SHA256      string                 `yaml:"sha256"`
-	Version     string                 `yaml:"version"`
-	PreInstall  []PreInstall           `yaml:"pre_install"`
-	PostInstall []PostInstall          `yaml:"post_install"`
+	Name        string                 `yaml:"name,omitempty"`
+	Namespace   string                 `yaml:"namespace,omitempty"`
+	URL         string                 `yaml:"url,omitempty"`
+	SHA256      string                 `yaml:"sha256,omitempty"`
+	Version     string                 `yaml:"version,omitempty"`
+	PreInstall  []PreInstall           `yaml:"pre_install,omitempty"`
+	PostInstall []PostInstall          `yaml:"post_install,omitempty"`
 }
 
 // Repository is the repo for kbrew app
@@ -70,14 +70,14 @@ type Repository struct {
 
 // PreInstall contains Apps and Steps that need to be installed/executed before installing the main app
 type PreInstall struct {
-	Apps  []string
-	Steps []string
+	Apps  []string `yaml:"apps,omitempty"`
+	Steps []string `yaml:"steps,omitempty"`
 }
 
 // PostInstall contains Apps and Steps that need to be installed/executed after installing the main app
 type PostInstall struct {
-	Apps  []string
-	Steps []string
+	Apps  []string `yaml:"apps,omitempty"`
+	Steps []string `yaml:"steps,omitempty"`
 }
 
 // NewApp parses kbrew recipe configuration and returns AppConfig instance
