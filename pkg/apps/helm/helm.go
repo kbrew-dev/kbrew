@@ -38,7 +38,7 @@ func New(c config.App) *App {
 
 // Install installs the application specified by name, version and namespace.
 func (ha *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
-	fmt.Printf("Installing helm app %s/%s\n", ha.App.Repository.Name, name)
+	fmt.Printf("Installing helm app %s/%s in %s namespace\n", ha.App.Repository.Name, name, namespace)
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
@@ -52,7 +52,7 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	_, err := helmCommand(ctx, statusMethod, name, "", namespace, "", nil)
 	if err == nil {
 		// helm release already exists, return from here
-		fmt.Printf("helm app %s/%s already exists. Skipping...\n", ha.App.Repository.Name, name)
+		fmt.Printf("helm app %s/%s already exists in %s namespace. Skipping...\n", ha.App.Repository.Name, name, namespace)
 		return nil
 	}
 
@@ -63,7 +63,7 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 
 // Uninstall uninstalls the application specified by name and namespace.
 func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
-	fmt.Printf("Unistalling helm app %s\n", name)
+	fmt.Printf("Unistalling helm app %s from %s namespace\n", name, namespace)
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks

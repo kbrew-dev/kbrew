@@ -35,6 +35,14 @@ var (
 	ECInstallFail EventCatagory = "install-fail"
 	// ECInstallTimeout represents install timeout event catagory
 	ECInstallTimeout EventCatagory = "install-timeout"
+
+	// ECUninstallSuccess represents uninstall success event catagory
+	ECUninstallSuccess EventCatagory = "uninstall-success"
+	// ECUninstallFail represents uninstall failure event catagory
+	ECUninstallFail EventCatagory = "uninstall-fail"
+	// ECUninstallTimeout represents uninstall timeout event catagory
+	ECUninstallTimeout EventCatagory = "uninstall-timeout"
+
 	// ECK8sEvent represents k8s events event catagory
 	ECK8sEvent EventCatagory = "k8s-event"
 )

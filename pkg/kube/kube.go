@@ -2,7 +2,6 @@ package kube
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -69,7 +68,6 @@ func FetchNonRunningPods(ctx context.Context, workloads []corev1.ObjectReference
 
 	pods := []corev1.Pod{}
 	for _, wRef := range workloads {
-		fmt.Println("WORKLOAD", wRef)
 		switch wRef.Kind {
 		case "Pod":
 			pod, err := clis.KubeCli.CoreV1().Pods(wRef.Namespace).Get(ctx, wRef.Name, metav1.GetOptions{})

@@ -71,55 +71,111 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 		namespace = ""
 	}
 
-	// Event report
-	event := events.NewKbrewEvent(c)
-
 	switch m {
 	case Install:
-		// Run preinstall
-		for _, phase := range c.App.PreInstall {
-			for _, a := range phase.Apps {
-				if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-					return handleInstallError(ctx, err, event, app, namespace)
-				}
-			}
-			for _, a := range phase.Steps {
-				if err := execCommand(a); err != nil {
-					return handleInstallError(ctx, err, event, app, namespace)
-				}
-			}
-		}
-		// Run install
-		if err := app.Install(ctx, appName, namespace, c.App.Version, nil); err != nil {
-			return handleInstallError(ctx, err, event, app, namespace)
-		}
-		// Run postinstall
-		for _, phase := range c.App.PostInstall {
-			for _, a := range phase.Apps {
-				if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
-					return handleInstallError(ctx, err, event, app, namespace)
-				}
-			}
-			for _, a := range phase.Steps {
-				if err := execCommand(a); err != nil {
-					return handleInstallError(ctx, err, event, app, namespace)
-				}
-			}
-		}
-		if viper.GetBool(config.AnalyticsEnabled) {
-			if err1 := event.Report(context.TODO(), events.ECInstallSuccess, nil, nil); err1 != nil {
-				fmt.Printf("Failed to report event. %s\n", err1.Error())
-			}
-		}
+		return runInstall(ctx, app, c, m, appName, namespace, appConfigPath)
 	case Uninstall:
-		return app.Uninstall(ctx, appName, namespace)
+		return runUninstall(ctx, app, c, m, appName, namespace, appConfigPath)
 	default:
 		return errors.New(fmt.Sprintf("Unsupported method %s", m))
 	}
 	return nil
 }
 
-func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent, app App, namespace string) error {
+func runInstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {
+	// Event report
+	event := events.NewKbrewEvent(c)
+
+	// Run preinstall
+	for _, phase := range c.App.PreInstall {
+		for _, a := range phase.Apps {
+			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+				return handleInstallError(ctx, err, event, app, appName, namespace)
+			}
+		}
+		for _, a := range phase.Steps {
+			if err := execCommand(ctx, a); err != nil {
+				return handleInstallError(ctx, err, event, app, appName, namespace)
+			}
+		}
+	}
+	// Run install
+	if err := app.Install(ctx, appName, namespace, c.App.Version, nil); err != nil {
+		return handleInstallError(ctx, err, event, app, appName, namespace)
+	}
+	// Run postinstall
+	for _, phase := range c.App.PostInstall {
+		for _, a := range phase.Apps {
+			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+				return handleInstallError(ctx, err, event, app, appName, namespace)
+			}
+		}
+		for _, a := range phase.Steps {
+			if err := execCommand(ctx, a); err != nil {
+				return handleInstallError(ctx, err, event, app, appName, namespace)
+			}
+		}
+	}
+	if viper.GetBool(config.AnalyticsEnabled) {
+		if err1 := event.Report(context.TODO(), events.ECInstallSuccess, nil, nil); err1 != nil {
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
+		}
+	}
+	fmt.Printf("App %s installed successfully!\n", appName)
+	return nil
+}
+
+func runUninstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {
+	// Event report
+	event := events.NewKbrewEvent(c)
+
+	// Execute precleanup steps
+	for _, a := range c.App.PreCleanup.Steps {
+		if err := execCommand(ctx, a); err != nil {
+			return handleUninstallError(ctx, err, event, appName, namespace)
+		}
+	}
+
+	// Delete postinstall apps
+	for _, phase := range c.App.PostInstall {
+		for _, a := range phase.Apps {
+			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+				return handleUninstallError(ctx, err, event, appName, namespace)
+			}
+		}
+	}
+
+	// Run uninstall
+	if err := app.Uninstall(ctx, appName, namespace); err != nil {
+		return handleUninstallError(ctx, err, event, appName, namespace)
+	}
+
+	// Delete preinstall apps
+	for _, phase := range c.App.PreInstall {
+		for _, a := range phase.Apps {
+			if err := Run(ctx, m, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+				return handleUninstallError(ctx, err, event, appName, namespace)
+			}
+		}
+	}
+
+	// Execute postcleanup steps
+	for _, a := range c.App.PostCleanup.Steps {
+		if err := execCommand(ctx, a); err != nil {
+			return handleUninstallError(ctx, err, event, appName, namespace)
+		}
+	}
+
+	if viper.GetBool(config.AnalyticsEnabled) {
+		if err1 := event.Report(context.TODO(), events.ECUninstallSuccess, nil, nil); err1 != nil {
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
+		}
+	}
+	fmt.Printf("App %s uninstalled successfully!\n", appName)
+	return nil
+}
+
+func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent, app App, appName, namespace string) error {
 	if err == nil {
 		return nil
 	}
@@ -128,29 +184,51 @@ func handleInstallError(ctx context.Context, err error, event *events.KbrewEvent
 	}
 	wkl, err1 := app.Workloads(context.TODO(), namespace)
 	if err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err.Error())
 	}
 
 	if ctx.Err() != nil && ctx.Err() == context.DeadlineExceeded {
+		fmt.Printf("ERROR: Timed out while installing %s app in %s namespace\n", appName, namespace)
 		if err1 := event.Report(context.TODO(), events.ECInstallTimeout, err, nil); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 		if err1 := event.ReportK8sEvents(context.TODO(), err, wkl); err1 != nil {
-			fmt.Printf("Failed to report event. %s\n", err1.Error())
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 		}
 		return err
 	}
 	if err1 := event.Report(context.TODO(), events.ECInstallFail, err, nil); err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err1.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 	}
 	if err1 := event.ReportK8sEvents(context.TODO(), err, wkl); err1 != nil {
-		fmt.Printf("Failed to report event. %s\n", err1.Error())
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
 	}
 	return err
 }
 
-func execCommand(cmd string) error {
-	c := exec.Command("sh", "-c", cmd)
+func handleUninstallError(ctx context.Context, err error, event *events.KbrewEvent, appName, namespace string) error {
+	if err == nil {
+		return nil
+	}
+	fmt.Printf("Warning: error encountered while uninstalling app - %s.\nYou need to cleanup few resources manually. App: %s, Namespace: %s\n", err, appName, namespace)
+	if !viper.GetBool(config.AnalyticsEnabled) {
+		return err
+	}
+
+	if ctx.Err() != nil && ctx.Err() == context.DeadlineExceeded {
+		if err1 := event.Report(context.TODO(), events.ECUninstallTimeout, err, nil); err1 != nil {
+			fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
+		}
+		return err
+	}
+	if err1 := event.Report(context.TODO(), events.ECUninstallFail, err, nil); err1 != nil {
+		fmt.Printf("DEBUG: Failed to report event. %s\n", err1.Error())
+	}
+	return err
+}
+
+func execCommand(ctx context.Context, cmd string) error {
+	c := exec.CommandContext(ctx, "sh", "-c", cmd)
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Run()
