@@ -1,5 +1,25 @@
 # Changelog
 
+## [v0.0.6](https://github.com/kbrew-dev/kbrew/tree/v0.0.6) (2021-07-01)
+
+[Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.5...v0.0.6)
+
+**Closed issues:**
+
+- Create namespace if does not exist for raw apps [\#80](https://github.com/kbrew-dev/kbrew/issues/80)
+- Installation should continue if any dependency app already exists [\#79](https://github.com/kbrew-dev/kbrew/issues/79)
+
+**Merged pull requests:**
+
+- Silence usage and error print [\#92](https://github.com/kbrew-dev/kbrew/pull/92) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- Skip namespace creation if name is nil [\#91](https://github.com/kbrew-dev/kbrew/pull/91) ([PrasadG193](https://github.com/PrasadG193))
+- Use correct reference while creating namespace [\#90](https://github.com/kbrew-dev/kbrew/pull/90) ([PrasadG193](https://github.com/PrasadG193))
+- add info and args command [\#88](https://github.com/kbrew-dev/kbrew/pull/88) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- App cleanup improvements [\#87](https://github.com/kbrew-dev/kbrew/pull/87) ([PrasadG193](https://github.com/PrasadG193))
+- Skip helm app installation if already exists [\#85](https://github.com/kbrew-dev/kbrew/pull/85) ([PrasadG193](https://github.com/PrasadG193))
+- Fix incorrect exit codes [\#84](https://github.com/kbrew-dev/kbrew/pull/84) ([PrasadG193](https://github.com/PrasadG193))
+- create namespace if it doesn't exist  [\#83](https://github.com/kbrew-dev/kbrew/pull/83) ([mahendrabagul](https://github.com/mahendrabagul))
+
 ## [v0.0.5](https://github.com/kbrew-dev/kbrew/tree/v0.0.5) (2021-06-02)
 
 [Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.4...v0.0.5)
@@ -19,7 +39,6 @@
 - Collect events for analytics [\#77](https://github.com/kbrew-dev/kbrew/pull/77) ([PrasadG193](https://github.com/PrasadG193))
 - Support custom wait-for-ready timeout [\#76](https://github.com/kbrew-dev/kbrew/pull/76) ([PrasadG193](https://github.com/PrasadG193))
 - \[CI\] Fix go vet failures [\#72](https://github.com/kbrew-dev/kbrew/pull/72) ([PrasadG193](https://github.com/PrasadG193))
-- Support for raw app args [\#71](https://github.com/kbrew-dev/kbrew/pull/71) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - change args value to empty interface [\#70](https://github.com/kbrew-dev/kbrew/pull/70) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - yaml evaluator [\#69](https://github.com/kbrew-dev/kbrew/pull/69) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - Enhanced version command to check for latest version and warn user [\#68](https://github.com/kbrew-dev/kbrew/pull/68) ([vishal-biyani](https://github.com/vishal-biyani))
@@ -34,12 +53,12 @@
 
 **Merged pull requests:**
 
+- Support for raw app args [\#71](https://github.com/kbrew-dev/kbrew/pull/71) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - Args templating engine [\#67](https://github.com/kbrew-dev/kbrew/pull/67) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - arguments to helm app [\#66](https://github.com/kbrew-dev/kbrew/pull/66) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - Remove stale recipes dir [\#61](https://github.com/kbrew-dev/kbrew/pull/61) ([PrasadG193](https://github.com/PrasadG193))
 - Added link to registry [\#53](https://github.com/kbrew-dev/kbrew/pull/53) ([vishal-biyani](https://github.com/vishal-biyani))
 - Add go lint checks [\#52](https://github.com/kbrew-dev/kbrew/pull/52) ([mahendrabagul](https://github.com/mahendrabagul))
-- fix exact match for registry [\#51](https://github.com/kbrew-dev/kbrew/pull/51) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 
 ## [v0.0.3](https://github.com/kbrew-dev/kbrew/tree/v0.0.3) (2021-04-05)
 
@@ -59,6 +78,7 @@
 
 **Merged pull requests:**
 
+- fix exact match for registry [\#51](https://github.com/kbrew-dev/kbrew/pull/51) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - \[README\] Update installation steps and command structs [\#48](https://github.com/kbrew-dev/kbrew/pull/48) ([PrasadG193](https://github.com/PrasadG193))
 - Add support to update kbrew registries [\#47](https://github.com/kbrew-dev/kbrew/pull/47) ([PrasadG193](https://github.com/PrasadG193))
 - Install kbrew in existing exec bin dir during update [\#46](https://github.com/kbrew-dev/kbrew/pull/46) ([PrasadG193](https://github.com/PrasadG193))
