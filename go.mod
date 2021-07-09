@@ -7,6 +7,7 @@ replace github.com/graymeta/stow => github.com/kastenhq/stow v0.2.6-kasten.1
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/sprig/v3 v3.2.2
+	github.com/briandowns/spinner v1.16.0
 	github.com/go-git/go-git/v5 v5.2.0
 	github.com/google/go-cmp v0.5.4
 	github.com/google/go-github v17.0.0+incompatible
