@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -38,7 +39,7 @@ func NewStatus(logger *Logger) *Status {
 }
 
 func (s *Status) Start(msg string) {
-	s.End(true)
+	//s.End(true)
 	s.message = msg
 	if s.spinner != nil {
 		s.spinner.Suffix = fmt.Sprintf(" %s ", s.message)
@@ -46,18 +47,44 @@ func (s *Status) Start(msg string) {
 	}
 }
 
-func (s *Status) End(success bool) {
-	if s.message == "" {
+func (s *Status) Success(msg ...string) {
+	if !s.spinner.Active() {
 		return
 	}
 	if s.spinner != nil {
 		s.spinner.Stop()
 		fmt.Fprint(s.spinner.Writer, "\r")
 	}
-	if success {
-		s.logger.Infof(s.successStatusFormat, s.message)
-	} else {
-		s.logger.Infof(s.failureStatusFormat, s.message)
+	if msg != nil {
+		s.logger.Infof(s.successStatusFormat, strings.Join(msg, " "))
+		return
 	}
+	s.logger.Infof(s.successStatusFormat, s.message)
 	s.message = ""
+}
+
+func (s *Status) Error(msg ...string) {
+	if !s.spinner.Active() {
+		return
+	}
+	if s.spinner != nil {
+		s.spinner.Stop()
+		fmt.Fprint(s.spinner.Writer, "\r")
+	}
+	if msg != nil {
+		s.logger.Infof(s.failureStatusFormat, strings.Join(msg, " "))
+		return
+	}
+	s.logger.Infof(s.failureStatusFormat, s.message)
+	s.message = ""
+}
+
+func (s *Status) Stop() {
+	if !s.spinner.Active() {
+		return
+	}
+	if s.spinner != nil {
+		s.spinner.Stop()
+		fmt.Fprint(s.spinner.Writer, "\r")
+	}
 }

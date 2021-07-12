@@ -13,6 +13,7 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/apps/raw"
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/engine"
+	"github.com/kbrew-dev/kbrew/pkg/log"
 )
 
 type method string
@@ -26,19 +27,20 @@ const (
 
 // App holds helm app details
 type App struct {
-	App config.App
+	app config.App
+	log *log.Logger
 }
 
 // New returns Helm App
-func New(c config.App) *App {
+func New(c config.App, log *log.Logger) *App {
 	return &App{
-		App: c,
+		app: c,
+		log: log,
 	}
 }
 
 // Install installs the application specified by name, version and namespace.
 func (ha *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
-	fmt.Printf("Installing helm app %s/%s in %s namespace\n", ha.App.Repository.Name, name, namespace)
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
@@ -52,23 +54,22 @@ func (ha *App) Install(ctx context.Context, name, namespace, version string, opt
 	_, err := helmCommand(ctx, statusMethod, name, "", namespace, "", nil)
 	if err == nil {
 		// helm release already exists, return from here
-		fmt.Printf("helm app %s/%s already exists in %s namespace. Skipping...\n", ha.App.Repository.Name, name, namespace)
+		ha.log.Warnf("helm app %s/%s already exists in %s namespace. Skipping...\n", ha.app.Repository.Name, name, namespace)
 		return nil
 	}
 
-	out, err := helmCommand(ctx, installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.App.Repository.Name, name), ha.App.Args)
-	fmt.Println(out)
+	out, err := helmCommand(ctx, installMethod, name, version, namespace, fmt.Sprintf("%s/%s", ha.app.Repository.Name, name), ha.app.Args)
+	ha.log.Debug(out)
 	return err
 }
 
 // Uninstall uninstalls the application specified by name and namespace.
 func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
-	fmt.Printf("Unistalling helm app %s from %s namespace\n", name, namespace)
 	//TODO: Resolve Deps
 	// Validate and install chart
 	// TODO(@prasad): Use go sdks
 	out, err := helmCommand(ctx, uninstallMethod, name, "", namespace, "", nil)
-	fmt.Println(out)
+	ha.log.Debug(out)
 	return err
 }
 
@@ -85,13 +86,13 @@ func (ha *App) resolveArgs() error {
 	e := engine.NewEngine(config)
 
 	// TODO(@sahil.lakhwani): Parse only templated arguments
-	if len(ha.App.Args) != 0 {
-		for arg, value := range ha.App.Args {
+	if len(ha.app.Args) != 0 {
+		for arg, value := range ha.app.Args {
 			v, err := e.Render(fmt.Sprintf("%v", value))
 			if err != nil {
 				return err
 			}
-			ha.App.Args[arg] = v
+			ha.app.Args[arg] = v
 		}
 	}
 	return nil
@@ -99,7 +100,7 @@ func (ha *App) resolveArgs() error {
 
 func (ha *App) addRepo(ctx context.Context) (string, error) {
 	// Needs helm 3.2+
-	c := exec.CommandContext(ctx, "helm", "repo", "add", ha.App.Repository.Name, ha.App.Repository.URL)
+	c := exec.CommandContext(ctx, "helm", "repo", "add", ha.app.Repository.Name, ha.app.Repository.URL)
 	if out, err := c.CombinedOutput(); err != nil {
 		return string(out), err
 	}
@@ -114,7 +115,7 @@ func (ha *App) updateRepo(ctx context.Context) (string, error) {
 }
 
 func (ha *App) getManifests(ctx context.Context, namespace string) (string, error) {
-	c := exec.CommandContext(ctx, "helm", "get", "manifest", ha.App.Name, "--namespace", namespace)
+	c := exec.CommandContext(ctx, "helm", "get", "manifest", ha.app.Name, "--namespace", namespace)
 	out, err := c.CombinedOutput()
 	return string(out), err
 }
@@ -125,7 +126,7 @@ func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	if out, err := ha.addRepo(ctx); err != nil {
 		return out, err
 	}
-	c := exec.CommandContext(ctx, "helm", "search", "repo", fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
+	c := exec.CommandContext(ctx, "helm", "search", "repo", fmt.Sprintf("%s/%s", ha.app.Repository.Name, name))
 	out, err := c.CombinedOutput()
 	if err != nil {
 		return string(out), err

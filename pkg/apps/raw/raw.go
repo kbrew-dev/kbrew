@@ -28,6 +28,7 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/config"
 	"github.com/kbrew-dev/kbrew/pkg/engine"
 	"github.com/kbrew-dev/kbrew/pkg/kube"
+	"github.com/kbrew-dev/kbrew/pkg/log"
 	"github.com/kbrew-dev/kbrew/pkg/yaml"
 )
 
@@ -45,13 +46,14 @@ var yamlDelimiter = regexp.MustCompile(`(?m)^---$`)
 
 // App represents K8s app defined with plain YAML manifests
 type App struct {
-	App      config.App
-	KubeCli  kubernetes.Interface
-	OSAppCli osversioned.Interface
+	app      config.App
+	log      *log.Logger
+	kubeCli  kubernetes.Interface
+	osAppCli osversioned.Interface
 }
 
 // New returns new instance of raw App
-func New(c config.App) (*App, error) {
+func New(c config.App, log *log.Logger) (*App, error) {
 	cfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -70,9 +72,10 @@ func New(c config.App) (*App, error) {
 	}
 
 	rApp := &App{
-		App:      c,
-		KubeCli:  cli,
-		OSAppCli: osCli,
+		app:      c,
+		log:      log,
+		kubeCli:  cli,
+		osAppCli: osCli,
 	}
 	return rApp, nil
 }
@@ -90,13 +93,13 @@ func (r *App) resolveArgs() error {
 	e := engine.NewEngine(config)
 
 	// TODO(@sahil.lakhwani): Parse only templated arguments
-	if len(r.App.Args) != 0 {
-		for arg, value := range r.App.Args {
+	if len(r.app.Args) != 0 {
+		for arg, value := range r.app.Args {
 			v, err := e.Render(fmt.Sprintf("%v", value))
 			if err != nil {
 				return err
 			}
-			r.App.Args[arg] = v
+			r.app.Args[arg] = v
 		}
 	}
 	return nil
@@ -104,9 +107,7 @@ func (r *App) resolveArgs() error {
 
 // Install installs the app specified by name, version and namespace.
 func (r *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
-	fmt.Printf("Installing raw app %s/%s\n", r.App.Repository.Name, name)
-
-	manifest, err := getManifest(r.App.Repository.URL)
+	manifest, err := getManifest(r.app.Repository.URL)
 	if err != nil {
 		return err
 	}
@@ -115,36 +116,40 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 		return err
 	}
 
-	patchedManifest, err := patchManifest(manifest, r.App.Args)
+	patchedManifest, err := patchManifest(manifest, r.app.Args)
 	if err != nil {
 		return err
 	}
 
-	if err := kube.CreateNamespace(ctx, r.KubeCli, namespace); err != nil && !k8sErrors.IsAlreadyExists(err) {
+	if err := kube.CreateNamespace(ctx, r.kubeCli, namespace); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return err
 	}
 
 	// TODO(@prasad): Use go sdks
-	if err := kubectlCommand(ctx, install, name, namespace, patchedManifest); err != nil {
+	out, err := kubectlCommand(ctx, install, name, namespace, patchedManifest)
+	if err != nil {
+		r.log.Debug(out)
 		return err
 	}
-	fmt.Printf("Waiting for components to be ready for %s\n", name)
+	r.log.Debug(out)
+	r.log.Debugf("Waiting for components to be ready for %s\n", name)
 	return r.waitForReady(ctx, namespace)
 }
 
 // Uninstall uninstalls the app specified by name and namespace.
 func (r *App) Uninstall(ctx context.Context, name, namespace string) error {
-	fmt.Printf("Unistalling raw app %s\n", name)
 	// TODO(@prasad): Use go sdks
-	return kubectlCommand(ctx, uninstall, name, namespace, r.App.Repository.URL)
+	out, err := kubectlCommand(ctx, uninstall, name, namespace, r.app.Repository.URL)
+	r.log.Debug(out)
+	return err
 }
 
 // Search searches the app specified by name.
 func (r *App) Search(ctx context.Context, name string) (string, error) {
-	return printList(r.App), nil
+	return printList(r.app), nil
 }
 
-func kubectlCommand(ctx context.Context, m method, name, namespace, manifest string) error {
+func kubectlCommand(ctx context.Context, m method, name, namespace, manifest string) (string, error) {
 	var c *exec.Cmd
 	switch m {
 	case install:
@@ -158,15 +163,14 @@ func kubectlCommand(ctx context.Context, m method, name, namespace, manifest str
 	if namespace != "" {
 		c.Args = append(c.Args, "--namespace", namespace)
 	}
-
-	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
-	return c.Run()
+	output, err := c.Output()
+	return string(output), err
 }
 
 // Workloads returns K8s workload object reference list for the raw app
 func (r *App) Workloads(ctx context.Context, namespace string) ([]corev1.ObjectReference, error) {
-	resp, err := http.Get(r.App.Repository.URL)
+	resp, err := http.Get(r.app.Repository.URL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read resource manifest from URL")
 	}
@@ -187,22 +191,22 @@ func (r *App) waitForReady(ctx context.Context, namespace string) error {
 	for _, wRef := range workloads {
 		switch wRef.Kind {
 		case "Pod":
-			if err := kube.WaitForPodReady(ctx, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+			if err := kube.WaitForPodReady(ctx, r.kubeCli, wRef.Namespace, wRef.Name); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Pod not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
 			}
 
 		case "Deployment":
-			if err := kube.WaitForDeploymentReady(ctx, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+			if err := kube.WaitForDeploymentReady(ctx, r.kubeCli, wRef.Namespace, wRef.Name); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Deployment not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
 			}
 
 		case "StatefulSet":
-			if err := kube.WaitForStatefulSetReady(ctx, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+			if err := kube.WaitForStatefulSetReady(ctx, r.kubeCli, wRef.Namespace, wRef.Name); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("StatefulSet not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
 			}
 
 		case "DeploymentConfig":
-			if err := kube.WaitForDeploymentConfigReady(ctx, r.OSAppCli, r.KubeCli, wRef.Namespace, wRef.Name); err != nil {
+			if err := kube.WaitForDeploymentConfigReady(ctx, r.osAppCli, r.kubeCli, wRef.Namespace, wRef.Name); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("DeploymentConfig not in ready state. Namespace: %s, Name: %s", wRef.Namespace, wRef.Name))
 			}
 		}
