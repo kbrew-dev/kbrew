@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -91,7 +92,13 @@ type AppCleanup struct {
 func NewApp(name, path string) (*AppConfig, error) {
 	c := &AppConfig{}
 	configFile, err := os.Open(path)
-	defer configFile.Close()
+	defer func() {
+		err := configFile.Close()
+		if err != nil {
+			fmt.Printf("Error closing file :%v", err)
+		}
+	}()
+
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +109,10 @@ func NewApp(name, path string) (*AppConfig, error) {
 	}
 
 	if len(b) != 0 {
-		yaml.Unmarshal(b, c)
+		err = yaml.Unmarshal(b, c)
+		if err != nil {
+			return nil, err
+		}
 	}
 	c.App.Name = name
 	return c, nil

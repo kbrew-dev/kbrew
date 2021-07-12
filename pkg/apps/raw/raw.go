@@ -20,6 +20,7 @@ import (
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
+
 	// Load all auth plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
@@ -35,7 +36,7 @@ type method string
 const (
 	install   method = "apply"
 	uninstall method = "delete"
-	upgrade   method = "apply"
+	// upgrade   method = "apply" // unused
 
 	evalExpression = `select(.kind  == "%s" and .metadata.name == "%s").%s |= %v`
 )
@@ -261,7 +262,7 @@ func printList(app config.App) string {
 	var b bytes.Buffer
 	w := tabwriter.NewWriter(&b, 0, 0, 1, ' ', tabwriter.TabIndent)
 	fmt.Fprintln(w, "NAME\tVERSION\tTYPE")
-	fmt.Fprintln(w, fmt.Sprintf("%s\t%s\t%s", app.Name, app.Version, app.Repository.Type))
+	fmt.Fprintf(w, "%s\t%s\t%s", app.Name, app.Version, app.Repository.Type)
 	w.Flush()
 	return b.String()
 }
