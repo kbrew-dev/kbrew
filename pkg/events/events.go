@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,8 +18,8 @@ import (
 	"github.com/kbrew-dev/kbrew/pkg/version"
 )
 
-// EventCatagory is the Google Analytics Event catagory
-type EventCatagory string
+// EventCategory is the Google Analytics Event category
+type EventCategory string
 
 const (
 	kbrewTrackingID = "UA-195717361-1"
@@ -29,22 +28,22 @@ const (
 )
 
 var (
-	// ECInstallSuccess represents install success event catagory
-	ECInstallSuccess EventCatagory = "install-success"
-	// ECInstallFail represents install failure event catagory
-	ECInstallFail EventCatagory = "install-fail"
-	// ECInstallTimeout represents install timeout event catagory
-	ECInstallTimeout EventCatagory = "install-timeout"
+	// ECInstallSuccess represents install success event category
+	ECInstallSuccess EventCategory = "install-success"
+	// ECInstallFail represents install failure event category
+	ECInstallFail EventCategory = "install-fail"
+	// ECInstallTimeout represents install timeout event category
+	ECInstallTimeout EventCategory = "install-timeout"
 
-	// ECUninstallSuccess represents uninstall success event catagory
-	ECUninstallSuccess EventCatagory = "uninstall-success"
-	// ECUninstallFail represents uninstall failure event catagory
-	ECUninstallFail EventCatagory = "uninstall-fail"
-	// ECUninstallTimeout represents uninstall timeout event catagory
-	ECUninstallTimeout EventCatagory = "uninstall-timeout"
+	// ECUninstallSuccess represents uninstall success event category
+	ECUninstallSuccess EventCategory = "uninstall-success"
+	// ECUninstallFail represents uninstall failure event category
+	ECUninstallFail EventCategory = "uninstall-fail"
+	// ECUninstallTimeout represents uninstall timeout event category
+	ECUninstallTimeout EventCategory = "uninstall-timeout"
 
-	// ECK8sEvent represents k8s events event catagory
-	ECK8sEvent EventCatagory = "k8s-event"
+	// ECK8sEvent represents k8s events event category
+	ECK8sEvent EventCategory = "k8s-event"
 )
 
 type k8sEvent struct {
@@ -63,14 +62,14 @@ type KbrewEvent struct {
 	gaAIP        string
 	gaAppName    string
 	gaAppVersion string
-	gaEvCatagory string
-	gaEvAction   string
-	gaEvLabel    string
-	gaKbrewArgs  string
+	// gaEvCategory string
+	gaEvAction  string
+	gaEvLabel   string
+	gaKbrewArgs string
 }
 
-// String returns string representation of Event Catagory
-func (ec EventCatagory) String() string {
+// String returns string representation of Event Category
+func (ec EventCategory) String() string {
 	return string(ec)
 }
 
@@ -96,7 +95,7 @@ func NewKbrewEvent(appConfig *config.AppConfig) *KbrewEvent {
 }
 
 // Report sends event to Google Analytics
-func (kv *KbrewEvent) Report(ctx context.Context, ec EventCatagory, err error, k8sEvent *k8sEvent) error {
+func (kv *KbrewEvent) Report(ctx context.Context, ec EventCategory, err error, k8sEvent *k8sEvent) error {
 	v := url.Values{
 		"v":   {kv.gaVersion},
 		"tid": {kv.gaTID},
@@ -150,7 +149,7 @@ func (kv *KbrewEvent) Report(ctx context.Context, ec EventCatagory, err error, k
 		return err1
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("Analytics report failed with status code %d", resp.StatusCode))
+		return fmt.Errorf("analytics report failed with status code %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	return err1

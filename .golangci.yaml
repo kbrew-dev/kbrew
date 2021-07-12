@@ -1,0 +1,21 @@
+linters:
+  enable:
+    - deadcode
+    - errcheck
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - revive
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unconvert
+    - varcheck
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: github.com/kbrew-dev/kbrew

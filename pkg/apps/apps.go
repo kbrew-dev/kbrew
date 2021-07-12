@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 
@@ -52,7 +51,7 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 			return err
 		}
 	default:
-		return errors.New(fmt.Sprintf("Unsupported app type %s", c.App.Repository.Type))
+		return fmt.Errorf("unsupported app type %s", c.App.Repository.Type)
 	}
 
 	// Check if entry exists in config
@@ -73,13 +72,13 @@ func Run(ctx context.Context, m Method, appName, namespace, appConfigPath string
 
 	switch m {
 	case Install:
-		return runInstall(ctx, app, c, m, appName, namespace, appConfigPath)
+		err = runInstall(ctx, app, c, m, appName, namespace, appConfigPath)
 	case Uninstall:
-		return runUninstall(ctx, app, c, m, appName, namespace, appConfigPath)
+		err = runUninstall(ctx, app, c, m, appName, namespace, appConfigPath)
 	default:
-		return errors.New(fmt.Sprintf("Unsupported method %s", m))
+		err = fmt.Errorf("unsupported method %s", m)
 	}
-	return nil
+	return err
 }
 
 func runInstall(ctx context.Context, app App, c *config.AppConfig, m Method, appName, namespace, appConfigPath string) error {

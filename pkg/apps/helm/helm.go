@@ -18,10 +18,10 @@ import (
 type method string
 
 const (
-	installMethod     method = "install"
-	statusMethod      method = "status"
-	uninstallMethod   method = "delete"
-	getManifestMethod method = "get manifest"
+	installMethod   method = "install"
+	statusMethod    method = "status"
+	uninstallMethod method = "delete"
+	// getManifestMethod method = "get manifest" // unused
 )
 
 // App holds helm app details
@@ -123,7 +123,7 @@ func (ha *App) getManifests(ctx context.Context, namespace string) (string, erro
 func (ha *App) Search(ctx context.Context, name string) (string, error) {
 	// Needs helm 3.2+
 	if out, err := ha.addRepo(ctx); err != nil {
-		return string(out), err
+		return out, err
 	}
 	c := exec.CommandContext(ctx, "helm", "search", "repo", fmt.Sprintf("%s/%s", ha.App.Repository.Name, name))
 	out, err := c.CombinedOutput()
@@ -161,7 +161,7 @@ func helmCommand(ctx context.Context, m method, name, version, namespace, chart 
 		c.Args = append(c.Args, "--wait", "--timeout", "5h0m", "--create-namespace")
 	}
 
-	if chartArgs != nil && len(chartArgs) != 0 {
+	if len(chartArgs) != 0 {
 		c.Args = append(c.Args, appendChartArgs(chartArgs)...)
 	}
 
