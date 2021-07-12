@@ -91,7 +91,7 @@ func (r *AppRunner) Run(ctx context.Context, appName, namespace, appConfigPath s
 	case Uninstall:
 		return r.runUninstall(ctx, app, c, appName, namespace, appConfigPath)
 	default:
-		err = fmt.Errorf("unsupported method %s", m)
+		err = fmt.Errorf("unsupported method %s", r.operation)
 	}
 	return err
 }
