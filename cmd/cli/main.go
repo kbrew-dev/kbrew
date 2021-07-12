@@ -125,17 +125,18 @@ var (
 		Short:     "Output shell completion code for the specified shell",
 		ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
 		Args:      cobra.ExactValidArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			switch args[0] {
 			case "bash":
-				cmd.Root().GenBashCompletion(os.Stdout)
+				err = cmd.Root().GenBashCompletion(os.Stdout)
 			case "zsh":
-				cmd.Root().GenZshCompletion(os.Stdout)
+				err = cmd.Root().GenZshCompletion(os.Stdout)
 			case "fish":
-				cmd.Root().GenFishCompletion(os.Stdout, true)
+				err = cmd.Root().GenFishCompletion(os.Stdout, true)
 			case "powershell":
-				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+				err = cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
 			}
+			return err
 		},
 	}
 
@@ -214,7 +215,7 @@ func Execute() {
 
 func checkArgs(args []string) error {
 	if len(args) == 0 {
-		errors.New("No app name provided")
+		return errors.New("No app name provided")
 	}
 	return nil
 }

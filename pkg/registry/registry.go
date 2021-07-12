@@ -69,6 +69,9 @@ func (kr *KbrewRegistry) Add(user, repo string) error {
 		URL:               fmt.Sprintf(ghRegistryURLFormat, user, repo),
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
+	if err != nil {
+		return err
+	}
 	head, err := r.Head()
 	if err != nil {
 		return err
@@ -85,7 +88,7 @@ func (kr *KbrewRegistry) FetchRecipe(appName string) (string, error) {
 		return "", err
 	}
 	if len(info) == 0 {
-		return "", errors.New(fmt.Sprintf("No recipe found for %s", appName))
+		return "", fmt.Errorf("no recipe found for %s", appName)
 	}
 	return info[0].Path, nil
 }
@@ -129,7 +132,7 @@ func (kr *KbrewRegistry) ListApps() ([]Info, error) {
 			if len(match) != 2 {
 				continue
 			}
-			infoList = append(infoList, Info{Name: string(match[1]), Path: path})
+			infoList = append(infoList, Info{Name: match[1], Path: path})
 		}
 		return nil
 	})
