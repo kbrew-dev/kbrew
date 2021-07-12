@@ -213,13 +213,6 @@ func Execute() {
 	}
 }
 
-func checkArgs(args []string) error {
-	if len(args) == 0 {
-		return errors.New("No app name provided")
-	}
-	return nil
-}
-
 func manageApp(m apps.Method, args []string) error {
 	ctx := context.Background()
 	if timeout == "" {
