@@ -132,7 +132,7 @@ func (r *App) Install(ctx context.Context, name, namespace, version string, opti
 		return err
 	}
 	r.log.Debug(out)
-	r.log.Debugf("Waiting for components to be ready for %s\n", name)
+	r.log.Debugf("Waiting for components to be ready for %s", name)
 	return r.waitForReady(ctx, namespace)
 }
 
