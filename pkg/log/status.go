@@ -81,6 +81,7 @@ func (s *Status) Stop() {
 		return
 	}
 	if s.spinner != nil {
+		fmt.Fprint(s.logger.Writer, "\r")
 		s.spinner.Stop()
 	}
 }

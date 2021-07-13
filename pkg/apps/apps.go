@@ -154,7 +154,7 @@ func (r *AppRunner) runUninstall(ctx context.Context, app App, c *config.AppConf
 	// Event report
 	event := events.NewKbrewEvent(c)
 
-	r.status.Start(fmt.Sprintf("Cleaning up pre-install dependencies for %s", appName))
+	r.status.Start(fmt.Sprintf("Executing up pre-cleanup steps for %s", appName))
 	// Execute precleanup steps
 	for _, a := range c.App.PreCleanup.Steps {
 		out, err := r.execCommand(ctx, a)
@@ -191,7 +191,7 @@ func (r *AppRunner) runUninstall(ctx context.Context, app App, c *config.AppConf
 	}
 
 	// Execute postcleanup steps
-	r.status.Start(fmt.Sprintf("Cleaning up pre-install dependencies for %s", appName))
+	r.status.Start(fmt.Sprintf("Executing up post-cleanup steps for %s", appName))
 	for _, a := range c.App.PostCleanup.Steps {
 		out, err := r.execCommand(ctx, a)
 		if err != nil {

@@ -254,32 +254,32 @@ func manageApp(m apps.Method, args []string) error {
 func printDetails(log *log.Logger, appName string, m apps.Method, c *config.AppConfig) {
 	switch m {
 	case apps.Install:
-		log.Infof("🚀 Installing %s app...\n", appName)
+		log.Infof("🚀 Installing %s app...", appName)
 		log.InfoMap("Version", c.App.Version)
 		log.InfoMap("Pre-install dependencies", "")
 		for _, pre := range c.App.PreInstall {
 			for _, app := range pre.Apps {
-				log.Infof(" - %s\n", app)
+				log.Infof(" - %s", app)
 			}
 		}
 		log.InfoMap("Post-install dependencies", "")
 		for _, post := range c.App.PostInstall {
 			for _, app := range post.Apps {
-				log.Infof(" - %s\n", app)
+				log.Infof(" - %s", app)
 			}
 		}
 		log.Info("---")
 	case apps.Uninstall:
-		log.Infof("🧹 Uninstalling %s app and its dependencies...\n", appName)
+		log.Infof("🧹 Uninstalling %s app and its dependencies...", appName)
 		log.InfoMap("Dependencies", "")
 		for _, pre := range c.App.PreInstall {
 			for _, app := range pre.Apps {
-				log.Infof(" - %s\n", app)
+				log.Infof(" - %s", app)
 			}
 		}
 		for _, post := range c.App.PostInstall {
 			for _, app := range post.Apps {
-				log.Infof(" - %s\n", app)
+				log.Infof(" - %s", app)
 			}
 		}
 		log.Info("---")
