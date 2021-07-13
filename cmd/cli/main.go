@@ -14,6 +14,7 @@ import (
 
 	"github.com/kbrew-dev/kbrew/pkg/apps"
 	"github.com/kbrew-dev/kbrew/pkg/config"
+	"github.com/kbrew-dev/kbrew/pkg/log"
 	"github.com/kbrew-dev/kbrew/pkg/registry"
 	"github.com/kbrew-dev/kbrew/pkg/update"
 	"github.com/kbrew-dev/kbrew/pkg/version"
@@ -25,6 +26,7 @@ var (
 	configFile string
 	namespace  string
 	timeout    string
+	debug      bool
 
 	rootCmd = &cobra.Command{
 		Use:           "kbrew",
@@ -187,6 +189,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file (default is $HOME/.kbrew.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&config.ConfigDir, "config-dir", "", "", "config dir (default is $HOME/.kbrew)")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "", false, "enable debug logs")
 
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(installCmd)
@@ -197,8 +200,9 @@ func init() {
 	rootCmd.AddCommand(completionCmd)
 	rootCmd.AddCommand(infoCmd)
 
-	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
 	infoCmd.AddCommand(argsCmd)
+
+	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
 }
 
 func main() {
@@ -231,13 +235,56 @@ func manageApp(m apps.Method, args []string) error {
 		if err != nil {
 			return err
 		}
+		logger := log.NewLogger(debug)
+		runner := apps.NewAppRunner(m, logger, log.NewStatus(logger))
+		c, err := config.NewApp(strings.ToLower(a), configFile)
+		if err != nil {
+			return err
+		}
+		printDetails(logger, strings.ToLower(a), m, c)
 		ctxTimeout, cancel := context.WithTimeout(ctx, timeoutDur)
 		defer cancel()
-		if err := apps.Run(ctxTimeout, m, strings.ToLower(a), namespace, configFile); err != nil {
+		if err := runner.Run(ctxTimeout, strings.ToLower(a), namespace, configFile); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func printDetails(log *log.Logger, appName string, m apps.Method, c *config.AppConfig) {
+	switch m {
+	case apps.Install:
+		log.Infof("🚀 Installing %s app...", appName)
+		log.InfoMap("Version", c.App.Version)
+		log.InfoMap("Pre-install dependencies", "")
+		for _, pre := range c.App.PreInstall {
+			for _, app := range pre.Apps {
+				log.Infof(" - %s", app)
+			}
+		}
+		log.InfoMap("Post-install dependencies", "")
+		for _, post := range c.App.PostInstall {
+			for _, app := range post.Apps {
+				log.Infof(" - %s", app)
+			}
+		}
+		log.Info("---")
+	case apps.Uninstall:
+		log.Infof("🧹 Uninstalling %s app and its dependencies...", appName)
+		log.InfoMap("Dependencies", "")
+		for _, pre := range c.App.PreInstall {
+			for _, app := range pre.Apps {
+				log.Infof(" - %s", app)
+			}
+		}
+		for _, post := range c.App.PostInstall {
+			for _, app := range post.Apps {
+				log.Infof(" - %s", app)
+			}
+		}
+		log.Info("---")
+	}
+
 }
 
 func manageAnalytics(args []string) error {
