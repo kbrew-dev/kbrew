@@ -2,69 +2,78 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"os"
+)
+
+const (
+	errorPrefix = "\x1b[31mERROR:\x1b[0m "
+	warnPrefix  = "\x1b[33mWARN:\x1b[0m "
+	debugPrefix = "DEBUG: "
+
+	infoMapKeyFormat = "\x1b[32m%s:\x1b[0m "
 )
 
 type Logger struct {
 	DebugLevel bool
+	Writer     io.Writer
 }
 
 func NewLogger(debug bool) *Logger {
 	return &Logger{
 		DebugLevel: debug,
+		Writer:     os.Stdout,
 	}
 }
 
+func (l *Logger) SetWriter(writer io.Writer) {
+	l.Writer = writer
+}
+
 func (l *Logger) Info(message ...interface{}) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Println(message...)
+	l.print("", message...)
 }
 
 func (l *Logger) Infof(format string, message ...interface{}) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf(format, message...)
+	l.print("", fmt.Sprintf(format, message...))
 }
 
 func (l *Logger) Debug(message ...interface{}) {
 	if !l.DebugLevel {
 		return
 	}
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("DEBUG: ")
-	fmt.Println(message...)
+	l.print(debugPrefix, message...)
 }
 
 func (l *Logger) Debugf(format string, message ...interface{}) {
 	if !l.DebugLevel {
 		return
 	}
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("DEBUG: "+format, message...)
+	l.print(debugPrefix, fmt.Sprintf(format, message...))
 }
 
 func (l *Logger) Error(message ...interface{}) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("\x1b[31mERROR:\x1b[0m ")
-	fmt.Println(message...)
+	l.print(errorPrefix, message...)
 }
 
 func (l *Logger) Errorf(format string, message ...interface{}) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("\x1b[31mERROR:\x1b[0m "+format, message...)
+	l.print(errorPrefix, fmt.Sprintf(format, message...))
 }
 
 func (l *Logger) Warn(message ...interface{}) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("\x1b[33mWARN:\x1b[0m ")
-	fmt.Println(message...)
+	l.print(warnPrefix, message...)
 }
 
 func (l *Logger) Warnf(format string, message ...interface{}) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("\x1b[33mWARN:\x1b[0m "+format, message...)
+	l.print(warnPrefix, fmt.Sprintf(format, message...))
 }
 
 func (l *Logger) InfoMap(key, value string) {
-	fmt.Fprint(os.Stdout, "\r")
-	fmt.Printf("\x1b[32m%s:\x1b[0m %s\n", key, value)
+	l.print(fmt.Sprintf(infoMapKeyFormat, key), value)
+}
+
+func (l *Logger) print(prefix string, message ...interface{}) {
+	fmt.Fprint(l.Writer, "\r")
+	fmt.Fprint(l.Writer, prefix)
+	fmt.Fprintln(l.Writer, message...)
 }

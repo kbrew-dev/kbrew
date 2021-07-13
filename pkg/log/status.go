@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	//"k8s.io/klog/v2"
 )
 
 const (
-	successStatusFormat = " \x1b[32m✓\x1b[0m %s\n"
-	failureStatusFormat = " \x1b[31m✗\x1b[0m %s\n"
+	successStatusFormat = " \x1b[32m✓\x1b[0m %s"
+	failureStatusFormat = " \x1b[31m✗\x1b[0m %s"
 )
 
 var (
@@ -39,7 +38,7 @@ func NewStatus(logger *Logger) *Status {
 }
 
 func (s *Status) Start(msg string) {
-	//s.End(true)
+	s.Stop()
 	s.message = msg
 	if s.spinner != nil {
 		s.spinner.Suffix = fmt.Sprintf(" %s ", s.message)
@@ -53,7 +52,6 @@ func (s *Status) Success(msg ...string) {
 	}
 	if s.spinner != nil {
 		s.spinner.Stop()
-		fmt.Fprint(s.spinner.Writer, "\r")
 	}
 	if msg != nil {
 		s.logger.Infof(s.successStatusFormat, strings.Join(msg, " "))
@@ -69,7 +67,6 @@ func (s *Status) Error(msg ...string) {
 	}
 	if s.spinner != nil {
 		s.spinner.Stop()
-		fmt.Fprint(s.spinner.Writer, "\r")
 	}
 	if msg != nil {
 		s.logger.Infof(s.failureStatusFormat, strings.Join(msg, " "))
@@ -85,6 +82,5 @@ func (s *Status) Stop() {
 	}
 	if s.spinner != nil {
 		s.spinner.Stop()
-		fmt.Fprint(s.spinner.Writer, "\r")
 	}
 }
