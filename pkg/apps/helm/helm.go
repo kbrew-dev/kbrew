@@ -8,11 +8,9 @@ import (
 
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kbrew-dev/kbrew/pkg/apps/raw"
 	"github.com/kbrew-dev/kbrew/pkg/config"
-	"github.com/kbrew-dev/kbrew/pkg/engine"
 	"github.com/kbrew-dev/kbrew/pkg/log"
 )
 
@@ -74,25 +72,11 @@ func (ha *App) Uninstall(ctx context.Context, name, namespace string) error {
 }
 
 func (ha *App) resolveArgs() error {
-	//TODO: user global singleton kubeconfig in all modules
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	).ClientConfig()
-	if err != nil {
-		return errors.Wrapf(err, "Failed to load Kubernetes config")
-	}
-
-	e := engine.NewEngine(config)
-
-	// TODO(@sahil.lakhwani): Parse only templated arguments
 	if len(ha.app.Args) != 0 {
 		for arg, value := range ha.app.Args {
-			v, err := e.Render(fmt.Sprintf("%v", value))
-			if err != nil {
-				return err
+			if value == nil {
+				ha.app.Args[arg] = ""
 			}
-			ha.app.Args[arg] = v
 		}
 	}
 	return nil

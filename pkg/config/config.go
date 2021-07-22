@@ -6,12 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kbrew-dev/kbrew/pkg/engine"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // RepoType describes the type of kbrew app repository
@@ -108,8 +110,22 @@ func NewApp(name, path string) (*AppConfig, error) {
 		return nil, err
 	}
 
+	k8sconfig, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		clientcmd.NewDefaultClientConfigLoadingRules(),
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to load Kubernetes config")
+	}
+
+	e := engine.NewEngine(k8sconfig)
+	v, err := e.Render(string(b))
+	if err != nil {
+		return nil, err
+	}
+
 	if len(b) != 0 {
-		err = yaml.Unmarshal(b, c)
+		err = yaml.Unmarshal([]byte(v), c)
 		if err != nil {
 			return nil, err
 		}
