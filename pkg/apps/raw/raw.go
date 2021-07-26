@@ -26,7 +26,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kbrew-dev/kbrew/pkg/config"
-	"github.com/kbrew-dev/kbrew/pkg/engine"
 	"github.com/kbrew-dev/kbrew/pkg/kube"
 	"github.com/kbrew-dev/kbrew/pkg/log"
 	"github.com/kbrew-dev/kbrew/pkg/yaml"
@@ -80,39 +79,10 @@ func New(c config.App, log *log.Logger) (*App, error) {
 	return rApp, nil
 }
 
-func (r *App) resolveArgs() error {
-	//TODO: user global singleton kubeconfig in all modules
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	).ClientConfig()
-	if err != nil {
-		return errors.Wrapf(err, "Failed to load Kubernetes config")
-	}
-
-	e := engine.NewEngine(config)
-
-	// TODO(@sahil.lakhwani): Parse only templated arguments
-	if len(r.app.Args) != 0 {
-		for arg, value := range r.app.Args {
-			v, err := e.Render(fmt.Sprintf("%v", value))
-			if err != nil {
-				return err
-			}
-			r.app.Args[arg] = v
-		}
-	}
-	return nil
-}
-
 // Install installs the app specified by name, version and namespace.
 func (r *App) Install(ctx context.Context, name, namespace, version string, options map[string]string) error {
 	manifest, err := getManifest(r.app.Repository.URL)
 	if err != nil {
-		return err
-	}
-
-	if err := r.resolveArgs(); err != nil {
 		return err
 	}
 
