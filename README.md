@@ -42,24 +42,66 @@ $ make
 
 ## CLI Usage
 
+```
+$ kbrew --help
+TODO: Long description
+
+Usage:
+  kbrew [command]
+
+Available Commands:
+  analytics   Manage analytics setting
+  completion  Output shell completion code for the specified shell
+  help        Help about any command
+  info        Describe application
+  install     Install application
+  remove      Remove application
+  search      Search application
+  update      Update kbrew and recipe registries
+  version     Print version information
+
+Flags:
+  -c, --config string       config file (default is $HOME/.kbrew.yaml)
+      --config-dir string   config dir (default is $HOME/.kbrew)
+      --debug               enable debug logs
+  -h, --help                help for kbrew
+  -n, --namespace string    namespace
+
+Use "kbrew [command] --help" for more information about a command.
+```
+
 For a quick demo, watch: https://www.youtube.com/watch?v=pWRZhZgfYSw 
 
-### kbrew install
+### Commonly used commands
 
-Installs a recipe in your cluster with all pre & posts steps and applications.
-
-### kbrew search
+#### kbrew search
 
 Searches for a recipe for the given application. Lists all the available recipes if no application name is passed.
 
-### kbrew update
+#### kbrew info
+
+Prints applications details including registry and dependency information. 
+
+#### kbrew install
+
+Installs a recipe in your cluster with all pre & posts steps and applications.
+
+#### kbrew update
 
 Checks for kbrew updates and upgrades automatically if a newer version is available.
 Fetches updates for all the kbrew recipe registries
 
-### kbrew remove 
+#### kbrew remove 
 
-Partially implemented as of now.
+Uninstalls the application and it's dependencies.
+
+## Workflow
+
+kbrew app installation is driven by recipes. The recipe consists of app repository metadata, pre and post-install dependencies, custom steps, cleanup steps, etc. (See Recipe section for details). [kbrew-registry](https://github.com/kbrew-dev/kbrew-registry) is the official collection of all the kbrew app recipes. 
+- When someone executes `kbrew install [app]`, kbrew fetches recipe from the GitHub registry to install the app.
+- Once the recipe is parsed, kbrew knows about the pre/post-install dependencies and custom steps need to be executed for e2e app installation.
+- For each app dependency, kbrew recursively calls `install` on each app, which again fetches the recipe for the app from registry and follows the same installation workflow. 
+- Along with apps, pre/post-install dependencies also consists of custom `steps` which are executed as a part of app installation. The recipe structure is discussed in detail in the next section.
 
 ## Terminology
 
