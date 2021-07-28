@@ -111,48 +111,57 @@ kbrew app installation is driven by recipes. The recipe consists of app reposito
 - For each app dependency, kbrew recursively calls `install` on each app, which again fetches the recipe for the app from the registry and follows the same installation workflow. 
 - Along with apps, pre/post-install dependencies also consists of custom `steps` which are executed as a part of app installation. The recipe structure is discussed in detail in the next section.
 
-## Terminology
+## Recipes
 
-### Recipe
+A kbrew recipe is a simple YAML file that declares the installation process of a Kubernetes app. It allows to *brew* Helm charts or vanilla Kubernetes manifests with scripts, also managing dependencies with other recipes.
 
-A recipe defines the end-to-end installation of a set of things along with some custom steps and metadata. 
-Check out kafka-operator.yaml or similar recipes in the context of the terms being explained here. 
-All public recipes are maintained in the repo https://github.com/kbrew-dev/kbrew-registry 
+Recipes can be grouped togther in structured directory called `Registry`. kbrew uses the [kbrew-registry](https://github.com/kbrew-dev/kbrew-registry/) by default. Any other resistry can be referred with the `--config-dir` flag.
 
-#### Repository
+### Recipe structure
 
-A repository has a name, type and a URL and based on type, there are two ways you can define a repo:
-
-#### Helm
-
-You use the base URL of the Chart repo and name of the chart to be used along with the type as `helm`
-
+A recipe looks like the below YAML
 ```
-  repository:
-    name: banzaicloud-stable
-    url: https://kubernetes-charts.banzaicloud.com
-    type: helm
-```
-#### Raw
-
-You can use a URL to an operator or a RAW yaml file with type `raw`
-
-```
+apiVersion: v1
+kind: kbrew
 app:
   repository:
-    name: cert-manager
-    url: https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
+    url: https://raw.githubusercontent.com/repo/manifest.yaml
     type: raw
+  args:
+    Deployment.nginx.spec.replicas: 4
+  namespace: default
+  version: v0.17.0
+  pre_install:
+  - apps:
+      - OtherApp
+  - steps:
+      - echo "installing app"
+  post_install:
+  - steps:
+      - echo "done installing"
+  pre_cleanup:
+  - steps
+      - echo "deleting prerequisite"
+  post_cleanup:
+  - steps:
+      - echo "app deleted"
 ```
 
-#### Pre_Install & Post_Install
+`app` declares the Kubernetes app to be installed with this recipe. The different fields are described below
 
-Every recipe has a bunch of pre & post install activities. There are two types supported today:
+* `repository` : defines the source of the app
+    - `url` : location of a Helm chart or a Kubernetes YAML manifest.
+    - `type`: can be `helm` or `raw`
+* `args` : arguments that can modify the Helm chart values or manifest field values. See [Arguments](#Arguments) section for more
+* `namespace` : Kubernetes namespace where the app should be installed. If not specified, `default` is considered
+* `pre_install` : list of other recipe names or shell scripts to be run **before** the installation of the app
+* `post_install` : list of other recipe names or shell scripts to be run **after** the installation of the app
+* `pre_cleanup` : scripts to run **before** the deletion of the app
+* `post_cleanup` : scripts to run **after** the deletion of the app
 
-##### Apps
+### Arguments
 
-Points to other formulas in the repo
+kbrew supports passing arguments to recipes as [Go templates](https://pkg.go.dev/text/template). All the functions from the [Sprig library](http://masterminds.github.io/sprig/) and the [lookup](https://helm.sh/docs/chart_template_guide/functions_and_pipelines/#using-the-lookup-function) & [include](https://helm.sh/docs/howto/charts_tips_and_tricks/#using-the-include-function) functions from Helm are supported.
 
-##### Steps
-
-Custom step - which can be inline commands or scripts etc.
+**Helm app**: Arguments to a helm app can be the key-value pairs offerred by the chart in it's values.yaml file.
+**Raw app**: These arguments patch the manifest of a raw app and can be specified in the format: `<Kind>.<Name>.<FieldPath>: <value>`. For example, to change `spec.replicas` of a `Deployment` named `nginx`, specify `Deployment.nginx.spec.replicas`
