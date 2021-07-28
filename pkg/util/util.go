@@ -9,7 +9,7 @@ import (
 
 const (
 	releaseRepoOwner = "kbrew-dev"
-	releaseRepoName  = "kbrew-release"
+	releaseRepoName  = "kbrew"
 )
 
 // GetLatestVersion returns latest published release version on GitHub
