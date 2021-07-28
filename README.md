@@ -1,10 +1,10 @@
 # kbrew
 
-kbrew is to Kubernetes what Homebrew is to MacOS - a simple and easy to use package manager which hides the underlying complexity.
+kbrew is to Kubernetes what Homebrew is to MacOS - a simple and easy-to-use package manager which hides the underlying complexity.
 
-Let's talk in context of an example of at installing Kafka on a Kubernetes cluster
- - You need cert manager & Zookeeper & kube-prometheus-stack for monitoring installed
- - Zookeeper is a operator so you need to create a CR of Zookeeper cluster after installation of operator.
+Let's talk in the context of an example of installing Kafka on a Kubernetes cluster
+ - You need cert-manager & Zookeeper & kube-prometheus-stack for monitoring installed
+ - Zookeeper is an operator so you need to create a CR of Zookeeper cluster after installation of the operator.
  - Then install Kafka operator
  - Create a CR of Kafka and wait for everything to stabilize.
  - Create ServieMonitor resources to enable prom scraping
@@ -16,7 +16,7 @@ $ kbrew install kafka-operator
 ```
 ## Helm chart or operator or Manifests - all abstracted
 
-Kbrew abstracts the underlying chart or operator or manifest and gives you a recipe to install a stack with all basic configurations done.
+kbrew abstracts the underlying chart or operator or manifest and gives you a recipe to install a stack with all basic configurations done.
 
 ## Installation
 
@@ -93,22 +93,26 @@ Fetches updates for all the kbrew recipe registries
 
 #### kbrew remove 
 
-Uninstalls the application and it's dependencies.
+Uninstalls the application and its dependencies.
 
 ## Workflow
 
+### App installation
+
+![kbrew-install](./images/kbrew-install.png)
+
 kbrew app installation is driven by recipes. The recipe consists of app repository metadata, pre and post-install dependencies, custom steps, cleanup steps, etc. (See Recipe section for details). [kbrew-registry](https://github.com/kbrew-dev/kbrew-registry) is the official collection of all the kbrew app recipes. 
 - When someone executes `kbrew install [app]`, kbrew fetches recipe from the GitHub registry to install the app.
-- Once the recipe is parsed, kbrew knows about the pre/post-install dependencies and custom steps need to be executed for e2e app installation.
-- For each app dependency, kbrew recursively calls `install` on each app, which again fetches the recipe for the app from registry and follows the same installation workflow. 
+- Once the recipe is parsed, kbrew knows about the pre/post-install dependencies and custom steps that need to be executed for e2e app installation.
+- For each app dependency, kbrew recursively calls `install` on each app, which again fetches the recipe for the app from the registry and follows the same installation workflow. 
 - Along with apps, pre/post-install dependencies also consists of custom `steps` which are executed as a part of app installation. The recipe structure is discussed in detail in the next section.
 
 ## Terminology
 
 ### Recipe
 
-A recipe defines the end to end installation of a set of things along with some custom steps and metadata. 
-Checkout kafka-operator.yaml or similar recipes in context of the terms being explained here. 
+A recipe defines the end-to-end installation of a set of things along with some custom steps and metadata. 
+Check out kafka-operator.yaml or similar recipes in the context of the terms being explained here. 
 All public recipes are maintained in the repo https://github.com/kbrew-dev/kbrew-registry 
 
 #### Repository
@@ -117,7 +121,7 @@ A repository has a name, type and a URL and based on type, there are two ways yo
 
 #### Helm
 
-You use the base URL of the Chart repo and name of chart to be used along with the type as `helm`
+You use the base URL of the Chart repo and name of the chart to be used along with the type as `helm`
 
 ```
   repository:
@@ -127,7 +131,7 @@ You use the base URL of the Chart repo and name of chart to be used along with t
 ```
 #### Raw
 
-You can use a URL to a operator or a RAW yaml file with type `raw`
+You can use a URL to an operator or a RAW yaml file with type `raw`
 
 ```
 app:
@@ -143,7 +147,7 @@ Every recipe has a bunch of pre & post install activities. There are two types s
 
 ##### Apps
 
-Points to other formulas in repo
+Points to other formulas in the repo
 
 ##### Steps
 
