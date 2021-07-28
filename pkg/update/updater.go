@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	upgradeCmd = "curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew-release/main/install.sh | sh"
+	upgradeCmd = "curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew/main/install.sh | sh"
 )
 
 func getBinDir() (string, error) {
