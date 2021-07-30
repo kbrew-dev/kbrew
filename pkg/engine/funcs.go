@@ -1,3 +1,5 @@
+// Copyright 2021 The kbrew Authors.
+//
 // Copyright The Helm Authors.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // The following code is taken helm, which was found here:
