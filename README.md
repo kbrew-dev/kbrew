@@ -27,7 +27,7 @@ Kbrew abstracts the underlying chart or operator or manifest and gives you a rec
 ### Install the pre-compiled binary
 
 ```bash
-$ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew-release/main/install.sh | sh
+$ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew/main/install.sh | sh
 ```
 
 ### Compiling from source
