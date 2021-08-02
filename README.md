@@ -10,15 +10,15 @@
 ![kbrew-logo](./images/kbrew-logo.png)
 
 
-kbrew is a Kubernetes tool which aims to make installing any complex stack in any cloud possible with `one step` (And yes we are definitely inspired by Homebrew from MacOS)
+kbrew is a Kubernetes tool that aims to make installing any complex stack in any cloud possible with `one step` (And yes we are definitely inspired by Homebrew from MacOS)
 
-Let's take the example of installing Kafka on a Kubernetes cluster. If you are a developer trying this on a non prod environment, you want a quick and simple way to set it up. But a typical process looks like this:
+Let's take the example of installing Kafka on a Kubernetes cluster. If you are a developer trying this on a non-prod environment, you want a quick and simple way to set it up. But a typical process looks like this:
 
- - You need cert-manager, Zookeeper & kube-prometheus-stack for monitoring installed.
- - Zookeeper is an operator so you need to create a CR of Zookeeper cluster after installation of the operator is done.
+ - You need a cert-manager, Zookeeper & kube-prometheus-stack for monitoring installed.
+ - Zookeeper is an operator so you need to create a CR of the Zookeeper cluster after installation of the operator is done.
  - Then you have to install Kafka operator.
- - Finally you have to create a CR of Kafka and wait for everything to stabilize.
- - And lastly create a ServieMonitor resources to enable prometheus scraping.
+ - Finally, you have to create a CR of Kafka and wait for everything to stabilize.
+ - And lastly, create a ServiceMonitor resource to enable Prometheus scraping.
 
 With kbrew, all of this happens with a "one step":
 
@@ -58,7 +58,7 @@ Table of Contents
       * [Pre &amp; Post Install](#pre--post-install)
       * [Pre and Post Cleanup](#pre-and-post-cleanup)
 * [FAQ](#faq)
-   * [Should I use kbrew for installing applications in production environment?](#should-i-use-kbrew-for-installing-applications-in-production-environment)
+   * [Should I use kbrew for installing applications in a production environment?](#should-i-use-kbrew-for-installing-applications-in-a-production-environment)
    * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
    * [How is analytics used?](#how-is-analytics-used)
    * [Who is developing kbrew?](#who-is-developing-kbrew)
@@ -69,15 +69,15 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ### `One step` Easy for users
 
-We are basically optimizing for `one step` install easy for developers. You end up installing applications in dev/tinkering environments multiple times and it should not be this hard. Also you should not have to write `glue code` or shell scripts to make it work!
+We are basically optimizing for `one step` install easy for developers. You end up installing applications in dev/tinkering environments multiple times and it should not be this hard. Also, you should not have to write `glue code` or shell scripts to make it work!
 
 ### Fully Configured & functional
 
-`One step` would not be true to it's promise if you had to `configure` things such as StorageClass or verify version of Kubernetes etc. It should work and be fully functional to use right after install.
+`One step` would not be true to its promise if you had to `configure` things such as StorageClass or verify the version of Kubernetes etc. It should work and be fully functional to use right after installation.
 
 ### Recipe - abstracts complexity!
 
-While we are making it easy for users to install any application in one step, we are pushing the complexity to recipe. Which means the recipe authors have to understand and write recipes that just work!
+While we are making it easy for users to install any application in one step, we are pushing the complexity to the recipe. This means the recipe authors have to understand and write recipes that just work!
 
 ## Installation
 
@@ -157,7 +157,7 @@ Uninstalls the application and its dependencies.
 
 A kbrew recipe is a YAML file that declares the installation process of a Kubernetes app. It allows to *brew* Helm charts or vanilla Kubernetes manifests with scripts, also managing dependencies with other recipes.
 
-Recipes can be grouped togther in structured directory called `Registry`. kbrew uses the [kbrew-registry](https://github.com/kbrew-dev/kbrew-registry/) by default.
+Recipes can be grouped in a structured directory called `Registry`. kbrew uses the [kbrew-registry](https://github.com/kbrew-dev/kbrew-registry/) by default.
 
 ### Recipe structure
 
@@ -166,11 +166,11 @@ The process of how kbrew manages the installation of an app according to the rec
 ![kbrew-install](./images/kbrew-install.png)
 
 
-Similarly, while removing an app, kbrew takes care of the order of removal the dependent apps and the cleanup steps specified via `pre/post_cleanup` in the recipe.
+Similarly, while removing an app, kbrew takes care of the order of removal of the dependent apps and the cleanup steps specified via `pre/post_cleanup` in the recipe.
 
 ![kbrew-install](./images/kbrew-remove.png)
 
-A bare-bones structure of recipe is composition of pre-install steps, install and post-install steps. Each step could have another application being installed or further set of steps.
+A bare-bones structure of a recipe is a composition of pre-install steps, install and post-install steps. Each step could have another application being installed or a further set of steps.
 
 ```
 apiVersion: v1
@@ -202,11 +202,11 @@ app:
 #### Application
 
 - `app` is the declaration of how a Kubernetes application - a Helm chart or a YAML manifest - will get installed.
-  * `repository` : defines the source of the app
-    - `url` : location of a Helm chart or a Kubernetes YAML manifest
+  * `repository`: defines the source of the app
+    - `url`: location of a Helm chart or a Kubernetes YAML manifest
     - `type`: can be `helm` or `raw`
 
-For example for Kafka recipe, we will use the Helm chart from Banzaicloud and point to the Helm repo where chart is available.
+For example for the Kafka recipe, we will use the Helm chart from Banzaicloud and point to the Helm repo where the chart is available.
 
 ```
 app:
@@ -222,7 +222,7 @@ kbrew allows you to modify the app via arguments that can modify the Helm chart 
 
 All the functions from the [Sprig library](http://masterminds.github.io/sprig/) and the [lookup](https://helm.sh/docs/chart_template_guide/functions_and_pipelines/#using-the-lookup-function) & [include](https://helm.sh/docs/howto/charts_tips_and_tricks/#using-the-include-function) functions from Helm are supported.
 
-**Helm app**: Arguments to a helm app can be the key-value pairs offered by the chart in it's values.yaml file.
+**Helm app**: Arguments to a helm app can be the key-value pairs offered by the chart in its values.yaml file.
 
 **Raw app**: These arguments patch the manifest of a raw app and can be specified in the format: `<Kind>.<Name>.<FieldPath>: <value>`. For example, to change `spec.replicas` of a `Deployment` named `nginx`, specify `Deployment.nginx.spec.replicas`
 
@@ -237,18 +237,18 @@ app:
     controller.service.annotations."service\.beta\.kubernetes\.io/do-loadbalancer-enable-proxy-protocol": '{{ $providerID := (index (lookup "v1" "Node" "" "").items 0).spec.providerID }}{{ if hasPrefix "digitalocean" $providerID }}true{{end}}'
 ```
 
-* `namespace` : Kubernetes namespace where the app should be installed. If not specified, `default` is used for installtion.
+* `namespace`: Kubernetes namespace where the app should be installed. If not specified, `default` is used for installation.
 
 #### Pre & Post Install
 
-Pre and post install sections allow the recipe author to do steps needed before or after the installation of core application.  This could be for example:
+Pre and post-install sections allow the recipe author to do steps needed before or after the installation of the core application.  This could be for example:
 
-- Checking for compatibility of cluster or the environment specific things such as `StorageClass`.
+- Checking for compatibility of cluster or the environment-specific things such as `StorageClass`.
 - Install another dependency application by using the recipe of that application.
 - After installation wait for setup to be ready and fully functional.
 - Create CRs of a specific application so that it is fully functional and ready to use.
 
-Let's look at some examples. In RookCeph recipe, we install the operator as a dependency application:
+Let's look at some examples. In the RookCeph recipe, we install the operator as a dependency application:
 
 ```
 pre_install:
@@ -256,7 +256,7 @@ pre_install:
     - rook-ceph-operator
 ```    
 
-In Minio recipe, we check version of Kubernetes so that only compatible versions of Kubernetes are used for rest of install
+In the Minio recipe, we check the version of Kubernetes so that only compatible versions of Kubernetes are used for rest of the install
 
 ```
 pre_install:
@@ -275,7 +275,7 @@ pre_install:
       fi
 ```
 
-Or for example in case of Minio, the `StorageClass` should have the value of `volumeBindingMode` as `WaitForFirstConsumer` - and is one of prerequisites for the installation:
+Or for example, in case of Minio, the `StorageClass` should have the value of `volumeBindingMode` as `WaitForFirstConsumer` - and is one of the prerequisites for the installation:
 
 ```
 pre_install:
@@ -298,9 +298,9 @@ The `pre_cleanup` and `post_cleanup` are very similar to the `pre_install` and `
 
 ## FAQ
 
-##### Should I use kbrew for installing applications in production environment?
+##### Should I use kbrew for installing applications in a production environment?
 
-At this point in time kbrew is not meant to install applications in production. It makes installing applications easy for developers and anyone tinkering and installing frequently
+At this point, kbrew is not meant to install applications in production. It makes installing applications easy for developers and anyone tinkering and installing frequently
 
 ##### How can I contribute recipes for a project/tool?
 
@@ -308,8 +308,8 @@ The recipes are maintained in [Kbrew registry](https://github.com/kbrew-dev/kbre
 
 ##### How is analytics used?
 
-The analytics is anonymised and used in aggregate to determine failure/success rate of recipes and to improve user experience.
+The analytics is anonymized and used in aggregate to determine the failure/success rate of recipes and to improve user experience.
 
 ##### Who is developing kbrew?
 
-The team at [InfraCloud](https://www.infracloud.io/) is supporting Kbrew's development with love! But we love contributions from community.
+The team at [InfraCloud](https://www.infracloud.io/) is supporting Kbrew's development with love! But we love contributions from the community.
