@@ -44,8 +44,7 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:           "kbrew",
-		Short:         "Homebrew for your Kubernetes applications",
-		Long:          `TODO: Long description`,
+		Short:         "A Kubernetes tool which aims to make installing any complex stack in any cloud possible with one step.",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
