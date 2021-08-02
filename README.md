@@ -58,10 +58,10 @@ Table of Contents
       * [Pre &amp; Post Install](#pre--post-install)
       * [Pre and Post Cleanup](#pre-and-post-cleanup)
 * [FAQ](#faq)
-      * [Should I use kbrew for installing applications in production environment?](#should-i-use-kbrew-for-installing-applications-in-production-environment)
-      * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
-      * [How is analytics used?](#how-is-analytics-used)
-      * [Who is developing kbrew?](#who-is-developing-kbrew)
+   * [Should I use kbrew for installing applications in production environment?](#should-i-use-kbrew-for-installing-applications-in-production-environment)
+   * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
+   * [How is analytics used?](#how-is-analytics-used)
+   * [Who is developing kbrew?](#who-is-developing-kbrew)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
