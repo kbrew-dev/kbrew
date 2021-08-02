@@ -1,5 +1,21 @@
 # Changelog
 
+## [v0.0.8](https://github.com/kbrew-dev/kbrew/tree/v0.0.8) (2021-08-02)
+
+[Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.7...v0.0.8)
+
+**Closed issues:**
+
+- Raw args with int values are not working [\#94](https://github.com/kbrew-dev/kbrew/issues/94)
+
+**Merged pull requests:**
+
+- Correct binary install link in README [\#108](https://github.com/kbrew-dev/kbrew/pull/108) ([PrasadG193](https://github.com/PrasadG193))
+- Add license to code files [\#106](https://github.com/kbrew-dev/kbrew/pull/106) ([gauravgahlot](https://github.com/gauravgahlot))
+- Add Mergify integration to automatically merge PRs on approval [\#104](https://github.com/kbrew-dev/kbrew/pull/104) ([PrasadG193](https://github.com/PrasadG193))
+- Switch release repo to kbrew [\#103](https://github.com/kbrew-dev/kbrew/pull/103) ([PrasadG193](https://github.com/PrasadG193))
+- Bump helm.sh/helm/v3 from 3.5.4 to 3.6.1 [\#101](https://github.com/kbrew-dev/kbrew/pull/101) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v0.0.7](https://github.com/kbrew-dev/kbrew/tree/v0.0.7) (2021-07-26)
 
 [Full Changelog](https://github.com/kbrew-dev/kbrew/compare/v0.0.6...v0.0.7)
@@ -29,6 +45,7 @@
 - Silence usage and error print [\#92](https://github.com/kbrew-dev/kbrew/pull/92) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - Skip namespace creation if name is nil [\#91](https://github.com/kbrew-dev/kbrew/pull/91) ([PrasadG193](https://github.com/PrasadG193))
 - Use correct reference while creating namespace [\#90](https://github.com/kbrew-dev/kbrew/pull/90) ([PrasadG193](https://github.com/PrasadG193))
+- Enable code scan with CodeQL for Go source [\#89](https://github.com/kbrew-dev/kbrew/pull/89) ([sanketsudake](https://github.com/sanketsudake))
 - add info and args command [\#88](https://github.com/kbrew-dev/kbrew/pull/88) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
 - App cleanup improvements [\#87](https://github.com/kbrew-dev/kbrew/pull/87) ([PrasadG193](https://github.com/PrasadG193))
 - Skip helm app installation if already exists [\#85](https://github.com/kbrew-dev/kbrew/pull/85) ([PrasadG193](https://github.com/PrasadG193))
@@ -75,6 +92,7 @@
 - Added link to registry [\#53](https://github.com/kbrew-dev/kbrew/pull/53) ([vishal-biyani](https://github.com/vishal-biyani))
 - Add go lint checks [\#52](https://github.com/kbrew-dev/kbrew/pull/52) ([mahendrabagul](https://github.com/mahendrabagul))
 - fix exact match for registry [\#51](https://github.com/kbrew-dev/kbrew/pull/51) ([sahil-lakhwani](https://github.com/sahil-lakhwani))
+- Add support of Mac build [\#50](https://github.com/kbrew-dev/kbrew/pull/50) ([PrasadG193](https://github.com/PrasadG193))
 
 ## [v0.0.3](https://github.com/kbrew-dev/kbrew/tree/v0.0.3) (2021-04-05)
 
@@ -83,10 +101,6 @@
 **Closed issues:**
 
 - Install script does not support Mac [\#49](https://github.com/kbrew-dev/kbrew/issues/49)
-
-**Merged pull requests:**
-
-- Add support of Mac build [\#50](https://github.com/kbrew-dev/kbrew/pull/50) ([PrasadG193](https://github.com/PrasadG193))
 
 ## [v0.0.2](https://github.com/kbrew-dev/kbrew/tree/v0.0.2) (2021-04-05)
 
