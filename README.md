@@ -1,26 +1,32 @@
-# kbrew
 
 [![CI](https://github.com/kbrew-dev/kbrew/actions/workflows/go.yml/badge.svg)](https://github.com/kbrew-dev/kbrew/actions/workflows/go.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/kbrew-dev/kbrew)](https://goreportcard.com/report/github.com/kbrew-dev/kbrew)
 [![Release Version](https://img.shields.io/github/v/release/kbrew-dev/kbrew?label=kbrew)](https://github.com/kbrew-dev/kbrew/releases/latest)
 [![License](https://img.shields.io/github/license/kbrew-dev/kbrew?color=light%20green&logo=github)](https://github.com/kbrew-dev/kbrew/blob/main/LICENSE)
 
+![kbrew-logo](./images/kbrew-logo.png)
+
+
+
+
 kbrew is to Kubernetes what Homebrew is to MacOS - a simple and easy to use package manager which hides the underlying complexity.
 
-Let's talk in the context of an example of installing Kafka on a Kubernetes cluster
+Let's take the example of installing Kafka on a Kubernetes cluster. If you are a developer trying this on a non prod environment, you want a quick and simple way to set it up. But a typical process looks like this:
  - You need cert-manager & Zookeeper & kube-prometheus-stack for monitoring installed
  - Zookeeper is an operator so you need to create a CR of Zookeeper cluster after installation of the operator.
  - Then install Kafka operator
  - Create a CR of Kafka and wait for everything to stabilize.
  - Create ServieMonitor resources to enable prom scraping
 
-With kbrew all of this happens with a single command (This command will change in near future):
+With kbrew, all of this happens with a single command (This command will change in near future):
 
 ```
 $ kbrew install kafka-operator
 ```
+
+
 ## Helm chart or operator or Manifests - all abstracted
 
-kbrew abstracts the underlying chart or operator or manifest and gives you a recipe to install a stack with all basic configurations done.
+kbrew abstracts the underlying chart or operator or manifest and gives you a recipe to install a stack with all specific configurations done. You can trust that the recipe `just works`!
 
 ## Installation
 
@@ -92,24 +98,12 @@ Installs a recipe in your cluster with all pre & posts steps and applications.
 
 #### kbrew update
 
-Checks for kbrew updates and upgrades automatically if a newer version is available.
-Fetches updates for all the kbrew recipe registries
+Checks for kbrew updates and upgrades automatically if a newer version is available. Fetches updates for all the kbrew recipe registries
 
 #### kbrew remove 
 
 Uninstalls the application and its dependencies.
 
-## Workflow
-
-### App installation
-
-![kbrew-install](./images/kbrew-install.png)
-
-kbrew app installation is driven by recipes. The recipe consists of app repository metadata, pre and post-install dependencies, custom steps, cleanup steps, etc. (See Recipe section for details). [kbrew-registry](https://github.com/kbrew-dev/kbrew-registry) is the official collection of all the kbrew app recipes. 
-- When someone executes `kbrew install [app]`, kbrew fetches recipe from the GitHub registry to install the app.
-- Once the recipe is parsed, kbrew knows about the pre/post-install dependencies and custom steps that need to be executed for e2e app installation.
-- For each app dependency, kbrew recursively calls `install` on each app, which again fetches the recipe for the app from the registry and follows the same installation workflow. 
-- Along with apps, pre/post-install dependencies also consists of custom `steps` which are executed as a part of app installation. The recipe structure is discussed in detail in the next section.
 
 ## Recipes
 
@@ -147,17 +141,17 @@ app:
       - echo "app deleted"
 ```
 
-`app` declares the Kubernetes app to be installed with this recipe. The different fields are described below
+`app` is the declaration of how a Kubernetes app - a Helm chart or a vanilla manifest - will get installed.
 
 * `repository` : defines the source of the app
-    - `url` : location of a Helm chart or a Kubernetes YAML manifest.
+    - `url` : location of a Helm chart or a Kubernetes YAML manifest
     - `type`: can be `helm` or `raw`
-* `args` : arguments that can modify the Helm chart values or manifest field values. See [Arguments](#Arguments) section for more
+* `args` : kbrew allows to modify the app via arguments that can modify the Helm chart values or manifest field values. See [Arguments](#Arguments) section for more
 * `namespace` : Kubernetes namespace where the app should be installed. If not specified, `default` is considered
-* `pre_install` : list of other recipe names or shell scripts to be run **before** the installation of the app
-* `post_install` : list of other recipe names or shell scripts to be run **after** the installation of the app
-* `pre_cleanup` : scripts to run **before** the deletion of the app
-* `post_cleanup` : scripts to run **after** the deletion of the app
+* `pre_install` : An app may require a few things to be present before installation. As in the case of kafka, it requires cert-manager and zookeeper. kbrew allows to specify this using `pre_install`. This can be a list of other recipe names or shell scripts to be run before the installation of the app
+* `post_install` : After the finish of the app installation, it may require to do some operations or install other app. Citing the Kafka example again, a Kafka CR needs to be installed. This can be achieved by specifying  list of other recipe names or shell scripts under `post_install`.
+* `pre_cleanup` and `post_cleanup` : While kbrew manages the order of removal of the dependencies and the app itself, there can be things that need manual removal. This typical could be resources manuaally installed with pre/post install steps, like a CR. The removal steps can be shell scripts specified with `pre_cleanup` and `post_cleanup`. The working section below well describes the order.
+
 
 ### Arguments
 
@@ -165,3 +159,16 @@ kbrew supports passing arguments to recipes as [Go templates](https://pkg.go.dev
 
 **Helm app**: Arguments to a helm app can be the key-value pairs offerred by the chart in it's values.yaml file.
 **Raw app**: These arguments patch the manifest of a raw app and can be specified in the format: `<Kind>.<Name>.<FieldPath>: <value>`. For example, to change `spec.replicas` of a `Deployment` named `nginx`, specify `Deployment.nginx.spec.replicas`
+
+
+
+## Working of Kbrew Recipe
+
+The process of how kbrew mangaes the installation of an app according to the recipe specification is depicted below. As can be seen, kbrew takes care of the order of pre/post actions.
+
+![kbrew-install](./images/kbrew-install.png)
+
+
+Similarly, while removing an app, kbrew takes care of the order of removal the dependent apps and the cleanup steps specified via `pre/post_cleanup` in the recipe.
+
+![kbrew-install](./images/kbrew-remove.png)
