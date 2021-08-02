@@ -1,7 +1,11 @@
 
+# kbrew
+
 [![CI](https://github.com/kbrew-dev/kbrew/actions/workflows/go.yml/badge.svg)](https://github.com/kbrew-dev/kbrew/actions/workflows/go.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/kbrew-dev/kbrew)](https://goreportcard.com/report/github.com/kbrew-dev/kbrew)
 [![Release Version](https://img.shields.io/github/v/release/kbrew-dev/kbrew?label=kbrew)](https://github.com/kbrew-dev/kbrew/releases/latest)
 [![License](https://img.shields.io/github/license/kbrew-dev/kbrew?color=light%20green&logo=github)](https://github.com/kbrew-dev/kbrew/blob/main/LICENSE)
+
+
 
 ![kbrew-logo](./images/kbrew-logo.png)
 
@@ -22,7 +26,7 @@ With kbrew, all of this happens with a "one step":
 $ kbrew install kafka-operator
 ```
 
-Similarly when you install a Rook Ceph operator - it makes it a `one step easy`:
+Similarly when you install a Rook Ceph cluster - it makes it a `one step easy`:
 
 ![](./images/rook-demo.gif)
 
@@ -54,10 +58,10 @@ Table of Contents
       * [Pre &amp; Post Install](#pre--post-install)
       * [Pre and Post Cleanup](#pre-and-post-cleanup)
 * [FAQ](#faq)
-         * [Should I use kbrew for installing applications in production environment?](#should-i-use-kbrew-for-installing-applications-in-production-environment)
-         * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
-         * [How is analytics used?](#how-is-analytics-used)
-         * [Who is developing kbrew?](#who-is-developing-kbrew)
+      * [Should I use kbrew for installing applications in production environment?](#should-i-use-kbrew-for-installing-applications-in-production-environment)
+      * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
+      * [How is analytics used?](#how-is-analytics-used)
+      * [Who is developing kbrew?](#who-is-developing-kbrew)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
