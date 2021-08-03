@@ -5,7 +5,6 @@ go 1.16
 replace github.com/graymeta/stow => github.com/kastenhq/stow v0.2.6-kasten.1
 
 require (
-	cloud.google.com/go/bigquery v1.8.0 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/briandowns/spinner v1.16.0
@@ -14,7 +13,6 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/kanisterio/kanister v0.0.0-20210224062123-08e898f3dbf3
-	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mikefarah/yq/v4 v4.9.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v0.0.0-20200526144822-34f54f12813a
