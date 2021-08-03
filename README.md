@@ -22,7 +22,7 @@ Let's take the example of installing Kafka on a Kubernetes cluster. If you are a
 With kbrew, all of this happens with a "one step":
 
 ```
-$ kbrew install kafka-operator
+kbrew install kafka-operator
 ```
 
 Similarly when you install a Rook Ceph cluster - it makes it a `one step easy`:
@@ -60,6 +60,7 @@ Table of Contents
    * [Should I use kbrew for installing applications in a production environment?](#should-i-use-kbrew-for-installing-applications-in-a-production-environment)
    * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
    * [How is analytics used?](#how-is-analytics-used)
+   * [What data is collected for analytics?](#what-data-is-collected-for-analytics)
    * [Who is developing kbrew?](#who-is-developing-kbrew)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -80,10 +81,14 @@ While we are making it easy for users to install any application in one step, we
 
 ## Installation
 
+<details>
+   <summary>(Click to expand)</summary> 
+ 
 ### Install the pre-compiled binary
 
 ```bash
-$ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew/main/install.sh | sh
+export BINDIR=/usr/local/bin
+curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew/main/install.sh | sh
 ```
 
 ### Compiling from source
@@ -91,16 +96,20 @@ $ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew/main/install.sh | 
 #### Step 1: Clone the repo
 
 ```bash
-$ git clone https://github.com/kbrew-dev/kbrew.git
+git clone https://github.com/kbrew-dev/kbrew.git
 ```
 
 #### Step 2: Build binary using make
 
 ```bash
-$ make
+make
 ```
-
+</details>
+ 
 ## CLI Usage
+
+<details>
+   <summary>(Click to expand)</summary> 
 
 ```
 $ kbrew --help
@@ -152,6 +161,8 @@ Checks for kbrew updates and upgrades automatically if a newer version is availa
 
 Uninstalls the application and its dependencies.
 
+</details>
+ 
 ## Recipes
 
 A kbrew recipe is a YAML file that declares the installation process of a Kubernetes app. It allows to *brew* Helm charts or vanilla Kubernetes manifests with scripts, also managing dependencies with other recipes.
@@ -308,6 +319,10 @@ The recipes are maintained in [Kbrew registry](https://github.com/kbrew-dev/kbre
 ##### How is analytics used?
 
 The analytics is anonymized and used in aggregate to determine the failure/success rate of recipes and to improve user experience.
+
+##### What data is collected for analytics?
+
+Please check [analytics](docs/analytics.md) for details.
 
 ##### Who is developing kbrew?
 
