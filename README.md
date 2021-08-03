@@ -10,7 +10,7 @@
 ![kbrew-logo](./images/kbrew-logo.png)
 
 
-kbrew is a Kubernetes tool that aims to make installing any complex stack in any cloud possible with `one step` (And yes we are definitely inspired by Homebrew from MacOS)
+kbrew is a CLI tool for Kubernetes which makes installing any complex stack easy in `one step` (And yes we are definitely inspired by Homebrew from MacOS)
 
 Let's take the example of installing Kafka on a Kubernetes cluster. If you are a developer trying this on a non-prod environment, you want a quick and simple way to set it up. But a typical process looks like this:
 
