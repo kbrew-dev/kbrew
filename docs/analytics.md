@@ -41,9 +41,9 @@ kbrew's analytics records the following different events:
 - `install-success`: installation successful
 - `install-fail`: installation failed
 - `install-timeout`: installation timed out
-- `install-success`: uninstallation successful
-- `install-fail`: uninstallation failed
-- `install-timeout`: uninstallation timed out
+- `uninstall-success`: uninstallation successful
+- `uninstall-fail`: uninstallation failed
+- `uninstall-timeout`: uninstallation timed out
 - `k8s-event`: Kubernetes failure events sent after `install-fail` or `install-timeout` event
 
 
