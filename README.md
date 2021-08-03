@@ -83,7 +83,7 @@ While we are making it easy for users to install any application in one step, we
 ### Install the pre-compiled binary
 
 ```bash
-$ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew-release/main/install.sh | sh
+$ curl -sfL https://raw.githubusercontent.com/kbrew-dev/kbrew/main/install.sh | sh
 ```
 
 ### Compiling from source
