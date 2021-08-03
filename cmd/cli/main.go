@@ -44,7 +44,7 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:           "kbrew",
-		Short:         "A Kubernetes tool that aims to make installing any complex stack in any cloud possible with one step.",
+		Short:         "A CLI tool for Kubernetes which makes installing any complex stack easy in one step.",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
