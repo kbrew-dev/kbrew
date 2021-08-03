@@ -3,7 +3,7 @@
 kbrew gathers anonymous aggregate analytics using Google Analytics. The analytics are enabled by default but you can always [opt out](analytics.md#opting-out) and continue using kbrew without ever sending analytics data.
 
 ## Why?
-The analytics is anonymized and used in aggregate to determine the failure/success rate of recipes and to improve user experience. It helps us understand how the tool is getting used and what we can do to make it even better.  Anonymous aggregate user analytics allows us to priorities bug fixes, planning new features and designing the roadmap. In the future, once we have enough data, we are planning to make the failure and success rates of the app installations public so that users can do install with confidence.
+The analytics is anonymized and used in aggregate to determine the failure/success rate of recipes and to improve user experience. It helps us understand how the tool is getting used and what we can do to make it even better.  Anonymous aggregate user analytics allows us to prioritize bug fixes, plan new features and design the roadmap. In the future, once we have enough data, we are planning to make the failure and success rates of the app installations public so that users can do install with confidence.
 
 ## What?
 
