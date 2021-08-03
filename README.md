@@ -105,7 +105,7 @@ $ make
 
 ```
 $ kbrew --help
-TODO: Long description
+A CLI tool for Kubernetes which makes installing any complex stack easy in one step.
 
 Usage:
   kbrew [command]
