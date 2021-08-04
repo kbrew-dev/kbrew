@@ -57,6 +57,7 @@ Table of Contents
       * [Pre &amp; Post Install](#pre--post-install)
       * [Pre and Post Cleanup](#pre-and-post-cleanup)
 * [FAQ](#faq)
+   * [How is diffeernt than Helm or Kubernetes Operator?](https://github.com/kbrew-dev/kbrew#how-is-diffeernt-than-helm-or-kubernetes-operator)
    * [Should I use kbrew for installing applications in a production environment?](#should-i-use-kbrew-for-installing-applications-in-a-production-environment)
    * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
    * [How is analytics used?](#how-is-analytics-used)
@@ -308,7 +309,7 @@ The `pre_cleanup` and `post_cleanup` are very similar to the `pre_install` and `
 
 ## FAQ
 
-##### How is diffeernt than Helm or Kubernetes Operator?
+##### How is different than Helm or Kubernetes Operator?
 
 Kbrew uses Helm charts and operators both under the hood. Kbrew acts as a `glue code` that makes combination of installing a Helm chart, creating a manifest CR etc. into a single command that also tries to make some decisions such as StorageClass configuration etc. It is great for developers who wants to just get something running fast and fully working!
 
