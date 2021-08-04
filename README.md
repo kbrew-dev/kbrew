@@ -6,7 +6,7 @@
 
 
 
-![kbrew-logo](./images/kbrew-logo.png)
+![kbrew-logo](./images/kbrew-logo.jpg)
 
 
 kbrew is a CLI tool for Kubernetes which makes installing any complex stack easy in `one step` (And yes we are definitely inspired by Homebrew from MacOS)
