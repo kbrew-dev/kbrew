@@ -310,7 +310,7 @@ The `pre_cleanup` and `post_cleanup` are very similar to the `pre_install` and `
 
 ##### How is diffeernt than Helm or Kubernetes Operator?
 
-Kbrew uses Helm charts and operators both under the hood. Kbrew acts as a `glue code` that makes combination of installing a Helm chart, creating a manifest CR etc. into a single command that also tries to make some decisions such as StorageClass configuration etc. It is great for developers who wants to just get something running fast and fully working!
+kbrew uses Helm charts and operators both under the hood. kbrew acts as a `glue code` that makes combination of installing a Helm chart, creating a manifest CR etc. into a single command that also tries to make some decisions such as StorageClass configuration etc. It is great for developers who wants to just get something running fast and fully working!
 
 ##### Should I use kbrew for installing applications in a production environment?
 
@@ -318,7 +318,7 @@ At this point, kbrew is not meant to install applications in production. It make
 
 ##### How can I contribute recipes for a project/tool?
 
-The recipes are maintained in [Kbrew registry](https://github.com/kbrew-dev/kbrew-registry), and if a recipe does not exist then please raise an issue and you can contribute to the registry.
+The recipes are maintained in [kbrew registry](https://github.com/kbrew-dev/kbrew-registry), and if a recipe does not exist then please raise an issue and you can contribute to the registry.
 
 ##### How is analytics used?
 
@@ -330,4 +330,4 @@ Please check [analytics](docs/analytics.md) for details.
 
 ##### Who is developing kbrew?
 
-The team at [InfraCloud](https://www.infracloud.io/) is supporting Kbrew's development with love! But we love contributions from the community.
+The team at [InfraCloud](https://www.infracloud.io/) is supporting kbrew's development with love! But we love contributions from the community.
