@@ -57,7 +57,7 @@ Table of Contents
       * [Pre &amp; Post Install](#pre--post-install)
       * [Pre and Post Cleanup](#pre-and-post-cleanup)
 * [FAQ](#faq)
-   * [How is diffeernt than Helm or Kubernetes Operator?](https://github.com/kbrew-dev/kbrew#how-is-diffeernt-than-helm-or-kubernetes-operator)
+   * [How is different than Helm or Kubernetes Operator?](https://github.com/kbrew-dev/kbrew#how-is-different-than-helm-or-kubernetes-operator)
    * [Should I use kbrew for installing applications in a production environment?](#should-i-use-kbrew-for-installing-applications-in-a-production-environment)
    * [How can I contribute recipes for a project/tool?](#how-can-i-contribute-recipes-for-a-projecttool)
    * [How is analytics used?](#how-is-analytics-used)
