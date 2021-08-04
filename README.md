@@ -309,7 +309,7 @@ The `pre_cleanup` and `post_cleanup` are very similar to the `pre_install` and `
 
 ## FAQ
 
-##### How is different than Helm or Kubernetes Operator?
+##### How is kbrew different than Helm or Kubernetes Operator?
 
 Kbrew uses Helm charts and operators both under the hood. Kbrew acts as a `glue code` that makes combination of installing a Helm chart, creating a manifest CR etc. into a single command that also tries to make some decisions such as StorageClass configuration etc. It is great for developers who wants to just get something running fast and fully working!
 
