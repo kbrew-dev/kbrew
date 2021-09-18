@@ -38,6 +38,7 @@ const (
 	defaultRegistryUserName = "kbrew-dev"
 	defaultRegistryRepoName = "kbrew-registry"
 	ghRegistryURLFormat     = "https://github.com/%s/%s.git"
+	kbrewDir                = ".kbrew"
 )
 
 // recipeFilenamePattern regex pattern to search recipe files within a registry
@@ -64,11 +65,10 @@ func New(configDir string) (*KbrewRegistry, error) {
 
 // init creates config dir and clones default registry if not exists
 func (kr *KbrewRegistry) init() error {
-
 	home, err := homedir.Dir()
 	cobra.CheckErr(err)
 
-	registriesDir := filepath.Join(home, ".kbrew", registriesDirName)
+	registriesDir := filepath.Join(home, kbrewDir, registriesDirName)
 
 	// Check if default kbrew-registry exists, clone if not added already
 	if _, err := os.Stat(filepath.Join(registriesDir, defaultRegistryUserName, defaultRegistryRepoName)); os.IsNotExist(err) {
@@ -79,7 +79,6 @@ func (kr *KbrewRegistry) init() error {
 
 // Add clones given kbrew registry in the config dir
 func (kr *KbrewRegistry) Add(user, repo, path string) error {
-
 	fmt.Printf("Adding %s/%s registry to %s\n", user, repo, path)
 	r, err := git.PlainClone(filepath.Join(path, user, repo), false, &git.CloneOptions{
 		URL:               fmt.Sprintf(ghRegistryURLFormat, user, repo),
