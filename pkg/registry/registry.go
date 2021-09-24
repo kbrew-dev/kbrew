@@ -24,7 +24,9 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
 	"github.com/kbrew-dev/kbrew/pkg/config"
@@ -36,6 +38,7 @@ const (
 	defaultRegistryUserName = "kbrew-dev"
 	defaultRegistryRepoName = "kbrew-registry"
 	ghRegistryURLFormat     = "https://github.com/%s/%s.git"
+	kbrewDir                = ".kbrew"
 )
 
 // recipeFilenamePattern regex pattern to search recipe files within a registry
@@ -55,31 +58,29 @@ type Info struct {
 // New initializes KbrewRegistry, creates or clones default registry if not exists
 func New(configDir string) (*KbrewRegistry, error) {
 	r := &KbrewRegistry{
-		path: filepath.Join(configDir, registriesDirName),
+		path: filepath.Join(configDir),
 	}
 	return r, r.init()
 }
 
 // init creates config dir and clones default registry if not exists
 func (kr *KbrewRegistry) init() error {
-	// Generate registry path
-	if _, err := os.Stat(kr.path); os.IsNotExist(err) {
-		if err := os.MkdirAll(kr.path, os.ModePerm); err != nil {
-			return errors.Wrap(err, "failed to initialize kbrew registry")
-		}
-	}
+	home, err := homedir.Dir()
+	cobra.CheckErr(err)
+
+	registriesDir := filepath.Join(home, kbrewDir, registriesDirName)
 
 	// Check if default kbrew-registry exists, clone if not added already
-	if _, err := os.Stat(filepath.Join(kr.path, defaultRegistryUserName, defaultRegistryRepoName)); os.IsNotExist(err) {
-		return kr.Add(defaultRegistryUserName, defaultRegistryRepoName)
+	if _, err := os.Stat(filepath.Join(registriesDir, defaultRegistryUserName, defaultRegistryRepoName)); os.IsNotExist(err) {
+		return kr.Add(defaultRegistryUserName, defaultRegistryRepoName, registriesDir)
 	}
 	return nil
 }
 
 // Add clones given kbrew registry in the config dir
-func (kr *KbrewRegistry) Add(user, repo string) error {
-	fmt.Printf("Adding %s/%s registry to %s\n", user, repo, kr.path)
-	r, err := git.PlainClone(filepath.Join(kr.path, user, repo), false, &git.CloneOptions{
+func (kr *KbrewRegistry) Add(user, repo, path string) error {
+	fmt.Printf("Adding %s/%s registry to %s\n", user, repo, path)
+	r, err := git.PlainClone(filepath.Join(path, user, repo), false, &git.CloneOptions{
 		URL:               fmt.Sprintf(ghRegistryURLFormat, user, repo),
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
