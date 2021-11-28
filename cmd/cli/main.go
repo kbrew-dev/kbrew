@@ -24,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 
 	"github.com/kbrew-dev/kbrew/pkg/apps"
 	"github.com/kbrew-dev/kbrew/pkg/config"
@@ -187,11 +186,10 @@ var (
 				return err
 			}
 
-			bytes, err := yaml.Marshal(appArgs)
-			if err != nil {
-				return err
+			for k, v := range appArgs {
+				fmt.Println(k, ":", v)
 			}
-			fmt.Println(string(bytes))
+
 			return nil
 		},
 	}
@@ -250,7 +248,7 @@ func manageApp(m apps.Method, args []string) error {
 		}
 		logger := log.NewLogger(debug)
 		runner := apps.NewAppRunner(m, logger, log.NewStatus(logger))
-		c, err := config.NewApp(strings.ToLower(a), configFile)
+		c, err := config.NewApp(strings.ToLower(a), configFile, true)
 		if err != nil {
 			return err
 		}

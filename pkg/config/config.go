@@ -105,7 +105,7 @@ type AppCleanup struct {
 }
 
 // NewApp parses kbrew recipe configuration and returns AppConfig instance
-func NewApp(name, path string) (*AppConfig, error) {
+func NewApp(name, path string, evaluateTemplate bool) (*AppConfig, error) {
 	c := &AppConfig{}
 	configFile, err := os.Open(path)
 	defer func() {
@@ -124,6 +124,20 @@ func NewApp(name, path string) (*AppConfig, error) {
 		return nil, err
 	}
 
+	// return the yaml without evaluating templates
+	if !evaluateTemplate {
+		if len(b) != 0 {
+			err = yaml.Unmarshal(b, c)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		c.App.Name = name
+		return c, nil
+	}
+
+	// client needed to evaluate templates
 	k8sconfig, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -144,6 +158,7 @@ func NewApp(name, path string) (*AppConfig, error) {
 			return nil, err
 		}
 	}
+
 	c.App.Name = name
 	return c, nil
 }

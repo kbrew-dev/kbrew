@@ -65,7 +65,7 @@ func NewAppRunner(op Method, log *log.Logger, status *log.Status) *AppRunner {
 
 // Run fetches recipe from registry for the app and performs given operation
 func (r *AppRunner) Run(ctx context.Context, appName, namespace, appConfigPath string) error {
-	c, err := config.NewApp(appName, appConfigPath)
+	c, err := config.NewApp(appName, appConfigPath, true)
 	if err != nil {
 		return err
 	}

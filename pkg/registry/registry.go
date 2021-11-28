@@ -202,7 +202,7 @@ func (kr *KbrewRegistry) Info(appName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	a, err := config.NewApp(appName, c)
+	a, err := config.NewApp(appName, c, false)
 	if err != nil {
 		return "", err
 	}
@@ -219,7 +219,7 @@ func (kr *KbrewRegistry) Args(appName string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	a, err := config.NewApp(appName, c)
+	a, err := config.NewApp(appName, c, false)
 	if err != nil {
 		return nil, err
 	}
