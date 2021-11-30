@@ -41,6 +41,7 @@ var (
 	namespace  string
 	timeout    string
 	debug      bool
+	dryrun     bool
 
 	rootCmd = &cobra.Command{
 		Use:           "kbrew",
@@ -216,6 +217,7 @@ func init() {
 	infoCmd.AddCommand(argsCmd)
 
 	installCmd.PersistentFlags().StringVarP(&timeout, "timeout", "t", "", "time to wait for app components to be in a ready state (default 15m0s)")
+	installCmd.PersistentFlags().BoolVarP(&dryrun, "dry-run", "", false, "dry run the installation")
 }
 
 func main() {
@@ -257,7 +259,7 @@ func manageApp(m apps.Method, args []string) error {
 		printDetails(logger, strings.ToLower(a), m, c)
 		ctxTimeout, cancel := context.WithTimeout(ctx, timeoutDur)
 		defer cancel()
-		if err := runner.Run(ctxTimeout, strings.ToLower(a), namespace, configFile); err != nil {
+		if err := runner.Run(ctxTimeout, strings.ToLower(a), namespace, configFile, dryrun); err != nil {
 			return err
 		}
 	}
