@@ -124,9 +124,9 @@ func (r *AppRunner) Run(ctx context.Context, appName, namespace, appConfigPath s
 				}
 			}
 			return nil
-		} else {
-			return r.runInstall(ctx, app, c, appName, namespace, appConfigPath)
 		}
+		return r.runInstall(ctx, app, c, appName, namespace, appConfigPath)
+
 	case Uninstall:
 		return r.runUninstall(ctx, app, c, appName, namespace, appConfigPath)
 	default:
