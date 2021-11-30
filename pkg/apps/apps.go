@@ -64,7 +64,7 @@ func NewAppRunner(op Method, log *log.Logger, status *log.Status) *AppRunner {
 }
 
 // Run fetches recipe from registry for the app and performs given operation
-func (r *AppRunner) Run(ctx context.Context, appName, namespace, appConfigPath string) error {
+func (r *AppRunner) Run(ctx context.Context, appName, namespace, appConfigPath string, dryrun bool) error {
 	c, err := config.NewApp(appName, appConfigPath)
 	if err != nil {
 		return err
@@ -101,7 +101,32 @@ func (r *AppRunner) Run(ctx context.Context, appName, namespace, appConfigPath s
 
 	switch r.operation {
 	case Install:
-		return r.runInstall(ctx, app, c, appName, namespace, appConfigPath)
+		// skipping install if dry-run
+		if dryrun {
+			r.log.Infof("Application to install %v \n", c.App.Name)
+			r.log.Infof("Application Type %v \nApplication URL %v \n", c.App.Repository.Type, c.App.Repository.URL)
+			r.log.Info("Pre Install Dependencies\n")
+			for _, phase := range c.App.PreInstall {
+				for _, a := range phase.Apps {
+					r.log.Infof("Application %v\n", a)
+				}
+				for _, a := range phase.Steps {
+					r.log.Infof("Manifest \n%v \n", a)
+				}
+			}
+			r.log.Info("Post Install Dependencies\n")
+			for _, phase := range c.App.PostInstall {
+				for _, a := range phase.Apps {
+					r.log.Infof("Application %v\n", a)
+				}
+				for _, a := range phase.Steps {
+					r.log.Infof("Manifest \n%v \n", a)
+				}
+			}
+			return nil
+		} else {
+			return r.runInstall(ctx, app, c, appName, namespace, appConfigPath)
+		}
 	case Uninstall:
 		return r.runUninstall(ctx, app, c, appName, namespace, appConfigPath)
 	default:
@@ -118,7 +143,7 @@ func (r *AppRunner) runInstall(ctx context.Context, app App, c *config.AppConfig
 	r.status.Start(fmt.Sprintf("Setting up pre-install dependencies for %s", appName))
 	for _, phase := range c.App.PreInstall {
 		for _, a := range phase.Apps {
-			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml"), false); err != nil {
 				return r.handleInstallError(ctx, err, event, app, appName, namespace)
 			}
 		}
@@ -143,7 +168,7 @@ func (r *AppRunner) runInstall(ctx context.Context, app App, c *config.AppConfig
 	r.status.Start(fmt.Sprintf("Setting up post-install dependencies for %s", appName))
 	for _, phase := range c.App.PostInstall {
 		for _, a := range phase.Apps {
-			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml"), false); err != nil {
 				return r.handleInstallError(ctx, err, event, app, appName, namespace)
 			}
 		}
@@ -182,7 +207,7 @@ func (r *AppRunner) runUninstall(ctx context.Context, app App, c *config.AppConf
 	// Delete postinstall apps
 	for _, phase := range c.App.PostInstall {
 		for _, a := range phase.Apps {
-			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml"), false); err != nil {
 				return r.handleUninstallError(ctx, err, event, appName, namespace)
 			}
 		}
@@ -198,7 +223,7 @@ func (r *AppRunner) runUninstall(ctx context.Context, app App, c *config.AppConf
 	// Delete preinstall apps
 	for _, phase := range c.App.PreInstall {
 		for _, a := range phase.Apps {
-			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml")); err != nil {
+			if err := r.Run(ctx, a, namespace, filepath.Join(filepath.Dir(appConfigPath), a+".yaml"), false); err != nil {
 				return r.handleUninstallError(ctx, err, event, appName, namespace)
 			}
 		}
