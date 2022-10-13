@@ -108,6 +108,29 @@ func (kr *KbrewRegistry) FetchRecipe(appName string) (string, error) {
 	return info[0].Path, nil
 }
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func (kr *KbrewRegistry) FetchDetailRecipe(appName string) (string, error) {
+	// Iterate over all the registries
+	info, err := kr.Search(appName, true)
+	if err != nil {
+		return "", err
+	}
+	if len(info) == 0 {
+		return "", fmt.Errorf("no recipe found for %s", appName)
+	}
+	 path := info[0].Path
+	// fs,e os.OpenFile(path)
+	data, err := os.ReadFile(path)
+    check(err)
+    //fmt.Print(string(dat))
+	return string(data), nil
+}
+
 // Search returns app Info for give app
 func (kr *KbrewRegistry) Search(appName string, exactMatch bool) ([]Info, error) {
 	result := []Info{}
