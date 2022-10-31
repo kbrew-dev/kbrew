@@ -173,6 +173,24 @@ var (
 		},
 	}
 
+	recipeCmd = &cobra.Command{
+		Use:   "recipe [Name]",
+		Short: "Recipe details",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			reg, err := registry.New(config.ConfigDir)
+			if err != nil {
+				return err
+			}
+			s, err := reg.FetchDetailRecipe(args[0])
+			if err != nil {
+				return err
+			}
+			fmt.Println(s)
+			return nil
+		},
+	}
+
 	argsCmd = &cobra.Command{
 		Use:   "args [NAME]",
 		Short: "Get arguments for an application",
@@ -212,6 +230,7 @@ func init() {
 	rootCmd.AddCommand(analyticsCmd)
 	rootCmd.AddCommand(completionCmd)
 	rootCmd.AddCommand(infoCmd)
+	rootCmd.AddCommand(recipeCmd)
 
 	infoCmd.AddCommand(argsCmd)
 
