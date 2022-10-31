@@ -174,9 +174,9 @@ var (
 	}
 
 	recipeCmd = &cobra.Command{
-		Use: "recipe [Name]",
+		Use:   "recipe [Name]",
 		Short: "Recipe details",
-		Args: cobra.MinimumNArgs(1),
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			reg, err := registry.New(config.ConfigDir)
 			if err != nil {
@@ -188,7 +188,7 @@ var (
 			}
 			fmt.Println(s)
 			return nil
-			},
+		},
 	}
 
 	argsCmd = &cobra.Command{

@@ -123,11 +123,11 @@ func (kr *KbrewRegistry) FetchDetailRecipe(appName string) (string, error) {
 	if len(info) == 0 {
 		return "", fmt.Errorf("no recipe found for %s", appName)
 	}
-	 path := info[0].Path
+	path := info[0].Path
 	// fs,e os.OpenFile(path)
 	data, err := os.ReadFile(path)
-    check(err)
-    //fmt.Print(string(dat))
+	check(err)
+	//fmt.Print(string(dat))
 	return string(data), nil
 }
 
